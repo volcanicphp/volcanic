@@ -1,10 +1,10 @@
 {
     "name": "volcanic/volcanic",
     "description": "The ultimate solution for Laravel APIs",
+    "version": "0.0.1",
     "keywords": [
-        "Volcanic",
-        "laravel",
-        "volcanic"
+        "volcanic",
+        "laravel"
     ],
     "homepage": "https://github.com/volcanicphp/volcanic",
     "license": "MIT",
