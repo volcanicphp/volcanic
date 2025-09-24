@@ -30,8 +30,8 @@ class ApiQueryService
      */
     protected function applySorting(Builder $query, API $apiConfig, Request $request): void
     {
-        $sortBy = $request->get('sort_by');
-        $sortDirection = $request->get('sort_direction', 'asc');
+        $sortBy = $request->input('sort_by');
+        $sortDirection = $request->input('sort_direction', 'asc');
 
         if (! $sortBy || $apiConfig->sortable === []) {
             return;
@@ -56,7 +56,7 @@ class ApiQueryService
     protected function applyFiltering(Builder $query, API $apiConfig, Request $request): void
     {
         foreach ($apiConfig->filterable as $field) {
-            $value = $request->get("filter[{$field}]");
+            $value = $request->input("filter[{$field}]");
 
             if ($value === null) {
                 continue;
@@ -94,7 +94,7 @@ class ApiQueryService
      */
     protected function applySearching(Builder $query, API $apiConfig, Request $request): void
     {
-        $search = $request->get('search');
+        $search = $request->input('search');
 
         if (! $search || $apiConfig->searchable === []) {
             return;
@@ -116,8 +116,8 @@ class ApiQueryService
             return;
         }
 
-        $includeTrashed = $request->get('include_trashed');
-        $onlyTrashed = $request->get('only_trashed');
+        $includeTrashed = $request->input('include_trashed');
+        $onlyTrashed = $request->input('only_trashed');
 
         // Check if the model uses soft deletes
         $model = $query->getModel();
@@ -137,7 +137,7 @@ class ApiQueryService
      */
     public function applyWith(Builder $query, Request $request): void
     {
-        $with = $request->get('with');
+        $with = $request->input('with');
 
         if (! $with) {
             return;
@@ -157,7 +157,7 @@ class ApiQueryService
      */
     public function applySelect(Builder $query, Request $request): void
     {
-        $fields = $request->get('fields');
+        $fields = $request->input('fields');
 
         if (! $fields) {
             return;
@@ -170,8 +170,8 @@ class ApiQueryService
         $fieldList = array_map(fn ($field): ?string => preg_replace('/[^a-zA-Z0-9_]/', '', (string) $field), $fieldList);
 
         // Always include the primary key
-        if (! in_array('id', $fieldList, true)) {
-            array_unshift($fieldList, 'id');
+        if (! in_array($query->getModel()->getKeyName(), $fieldList, true)) {
+            array_unshift($fieldList, $query->getModel()->getKeyName());
         }
 
         $query->select($fieldList);

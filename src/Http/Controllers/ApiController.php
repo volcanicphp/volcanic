@@ -19,9 +19,7 @@ use Volcanic\Services\ApiQueryService;
 
 class ApiController extends Controller
 {
-    public function __construct(
-        protected ApiQueryService $queryService
-    ) {}
+    public function __construct(protected ApiQueryService $queryService) {}
 
     /**
      * Display a listing of the resource.
@@ -31,7 +29,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        Gate::authorize('viewAny', $modelClass);
+        $this->authorizeIfPolicyExists('viewAny', $modelClass);
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
@@ -54,7 +52,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        Gate::authorize('create', $modelClass);
+        $this->authorizeIfPolicyExists('create', $modelClass);
 
         $validator = $this->validateRequest($request, $apiConfig, 'store');
 
@@ -85,7 +83,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        Gate::authorize('view', $model);
+        $this->authorizeIfPolicyExists('view', $model);
 
         try {
             return $model->toResource();
@@ -110,7 +108,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        Gate::authorize('update', $model);
+        $this->authorizeIfPolicyExists('update', $model);
 
         $validator = $this->validateRequest($request, $apiConfig, 'update', $model);
 
@@ -141,7 +139,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        Gate::authorize('delete', $model);
+        $this->authorizeIfPolicyExists('delete', $model);
 
         $model->delete();
 
@@ -170,7 +168,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        Gate::authorize('restore', $model);
+        $this->authorizeIfPolicyExists('restore', $model);
 
         if (method_exists($model, 'restore')) {
             $model->restore();
@@ -209,7 +207,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        Gate::authorize('forceDelete', $model);
+        $this->authorizeIfPolicyExists('forceDelete', $model);
 
         $model->forceDelete();
 
@@ -283,21 +281,12 @@ class ApiController extends Controller
     }
 
     /**
-     * Get metadata for the response.
+     * Authorize action only if a policy exists for the model.
      */
-    protected function getMeta($data, API $apiConfig): array
+    protected function authorizeIfPolicyExists(string $ability, string|Model $model): void
     {
-        $meta = [];
-
-        if ($data instanceof LengthAwarePaginator) {
-            $meta['pagination'] = [
-                'current_page' => $data->currentPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-                'last_page' => $data->lastPage(),
-            ];
+        if (Gate::getPolicyFor($model) !== null) {
+            Gate::authorize($ability, $model);
         }
-
-        return $meta;
     }
 }

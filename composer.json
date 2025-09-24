@@ -50,15 +50,15 @@
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "test:lint": "pint --test",
-        "test:unit": "XDEBUG_MODE=coverage pest --parallel --ci --coverage",
+        "test": "pest --parallel --ci",
         "test:type-coverage": "pest --type-coverage --min=100",
         "test:rector": "rector --dry-run",
-        "test": [
+        "test:all": [
             "@test:lint",
             "@test:rector",
             "@analyse",
             "@test:type-coverage",
-            "@test:unit"
+            "@test"
         ],
         "fix": [
             "rector",
