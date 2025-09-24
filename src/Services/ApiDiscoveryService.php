@@ -81,52 +81,55 @@ class ApiDiscoveryService
         Route::middleware('api')->prefix($prefix)->group(function () use ($resourceName, $modelClass, $apiAttribute, $operations): void {
             $controllerClass = ApiController::class;
 
-            // Apply middleware if specified
-            $route = Route::middleware($apiAttribute->middleware);
-
-            // Register individual route methods based on allowed operations
             if (in_array('index', $operations, true)) {
-                $route->get($resourceName, [$controllerClass, 'index'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('index');
+                Route::middleware($middleware)->get($resourceName, [$controllerClass, 'index'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('store', $operations, true)) {
-                $route->post($resourceName, [$controllerClass, 'store'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('store');
+                Route::middleware($middleware)->post($resourceName, [$controllerClass, 'store'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('show', $operations, true)) {
-                $route->get($resourceName.'/{id}', [$controllerClass, 'show'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('show');
+                Route::middleware($middleware)->get($resourceName.'/{id}', [$controllerClass, 'show'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('update', $operations, true)) {
-                $route->put($resourceName.'/{id}', [$controllerClass, 'update'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('update');
+                Route::middleware($middleware)->put($resourceName.'/{id}', [$controllerClass, 'update'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
 
-                $route->patch($resourceName.'/{id}', [$controllerClass, 'update'])
+                Route::middleware($middleware)->patch($resourceName.'/{id}', [$controllerClass, 'update'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('destroy', $operations, true)) {
-                $route->delete($resourceName.'/{id}', [$controllerClass, 'destroy'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('destroy');
+                Route::middleware($middleware)->delete($resourceName.'/{id}', [$controllerClass, 'destroy'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('restore', $operations, true)) {
-                $route->post($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('restore');
+                Route::middleware($middleware)->post($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
 
             if (in_array('forceDelete', $operations, true)) {
-                $route->delete($resourceName.'/{id}/force', [$controllerClass, 'forceDelete'])
+                $middleware = $apiAttribute->getMiddlewareForOperation('forceDelete');
+                Route::middleware($middleware)->delete($resourceName.'/{id}/force', [$controllerClass, 'forceDelete'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }

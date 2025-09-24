@@ -133,6 +133,55 @@ class API
     }
 
     /**
+     * Get middleware for all routes (string values or keys with array values).
+     */
+    public function getGlobalMiddleware(): array
+    {
+        $global = [];
+
+        foreach ($this->middleware as $key => $value) {
+            if (is_int($key)) {
+                $global[] = $value;
+            }
+        }
+
+        return $global;
+    }
+
+    /**
+     * Get middleware for specific routes.
+     */
+    public function getRouteSpecificMiddleware(): array
+    {
+        $specific = [];
+
+        foreach ($this->middleware as $key => $value) {
+            if (is_string($key) && is_array($value)) {
+                $specific[$key] = $value;
+            }
+        }
+
+        return $specific;
+    }
+
+    /**
+     * Get all middleware for a specific operation.
+     */
+    public function getMiddlewareForOperation(string $operation): array
+    {
+        $middleware = $this->getGlobalMiddleware();
+        $routeSpecific = $this->getRouteSpecificMiddleware();
+
+        foreach ($routeSpecific as $middlewareName => $routes) {
+            if (in_array($operation, $routes, true)) {
+                $middleware[] = $middlewareName;
+            }
+        }
+
+        return $middleware;
+    }
+
+    /**
      * Create a new API instance with softDeletes enabled.
      */
     public function withSoftDeletes(bool $softDeletes = true): self
