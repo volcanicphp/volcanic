@@ -65,7 +65,7 @@ class ApiQueryService
             }
 
             // Parse field and operator from filter key (e.g., "count:gte" or just "count")
-            $parts = explode(':', $filterKey, 2);
+            $parts = explode(':', (string) $filterKey, 2);
             $field = $parts[0];
             $operator = $parts[1] ?? 'eq'; // Default to equals if no operator specified
 
