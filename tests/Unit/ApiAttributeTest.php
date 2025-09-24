@@ -15,7 +15,7 @@ class ApiAttributeTest extends TestCase
 
         $this->assertInstanceOf(API::class, $api);
         $this->assertEquals('api', $api->getPrefix());
-        $this->assertTrue($api->paginated);
+        $this->assertTrue($api->paginate);
         $this->assertEquals(15, $api->perPage);
     }
 
@@ -26,7 +26,7 @@ class ApiAttributeTest extends TestCase
             name: 'custom-users',
             only: ['index', 'show'],
             middleware: ['auth:sanctum'],
-            paginated: false,
+            paginate: false,
             perPage: 25
         );
 
@@ -34,7 +34,7 @@ class ApiAttributeTest extends TestCase
         $this->assertEquals('custom-users', $api->getName());
         $this->assertEquals(['index', 'show'], $api->getOperations());
         $this->assertEquals(['auth:sanctum'], $api->middleware);
-        $this->assertFalse($api->paginated);
+        $this->assertFalse($api->paginate);
         $this->assertEquals(25, $api->perPage);
     }
 

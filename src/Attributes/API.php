@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Attributes;
 
 use Attribute;
+use Illuminate\Container\Attributes\Config;
 use Illuminate\Support\Arr;
 
 #[Attribute(Attribute::TARGET_CLASS)]
@@ -16,7 +17,8 @@ class API
         public readonly array $only = [],
         public readonly array $except = [],
         public readonly array $middleware = [],
-        public readonly bool $paginated = true,
+        public readonly bool $paginate = true,
+        #[Config('volcanic.default_per_page', 15)]
         public readonly int $perPage = 15,
         public readonly array $sortable = [],
         public readonly array $filterable = [],
@@ -25,7 +27,8 @@ class API
         public readonly array $validation = [],
         public readonly array $hidden = [],
         public readonly array $visible = [],
-    ) {}
+    ) {
+    }
 
     /**
      * Get the available CRUD operations.
@@ -97,7 +100,7 @@ class API
     public function getPaginationSettings(): array
     {
         return [
-            'enabled' => $this->paginated,
+            'enabled' => $this->paginate,
             'per_page' => $this->perPage,
         ];
     }
@@ -193,7 +196,7 @@ class API
             only: $this->only,
             except: $this->except,
             middleware: $this->middleware,
-            paginated: $this->paginated,
+            paginate: $this->paginate,
             perPage: $this->perPage,
             sortable: $this->sortable,
             filterable: $this->filterable,

@@ -33,12 +33,6 @@ class VolcanicServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        if (! file_exists(config_path('sanctum.php'))) {
-            $this->publishes([
-                __DIR__.'/../vendor/laravel/sanctum/config/sanctum.php' => config_path('sanctum.php'),
-            ]);
-        }
-
         if (config('volcanic.auto_discover_routes', true)) {
             $volcanic = $this->app->make(Volcanic::class);
             $volcanic->discoverApiRoutes();

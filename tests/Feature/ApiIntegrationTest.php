@@ -84,13 +84,13 @@ class ApiIntegrationTest extends TestCase
 
     public function test_pagination_settings_are_configured_correctly(): void
     {
-        $apiWithPagination = new API(paginated: true, perPage: 25);
+        $apiWithPagination = new API(paginate: true, perPage: 25);
         $paginationSettings = $apiWithPagination->getPaginationSettings();
 
         $this->assertTrue($paginationSettings['enabled']);
         $this->assertEquals(25, $paginationSettings['per_page']);
 
-        $apiWithoutPagination = new API(paginated: false);
+        $apiWithoutPagination = new API(paginate: false);
         $paginationSettings = $apiWithoutPagination->getPaginationSettings();
 
         $this->assertFalse($paginationSettings['enabled']);

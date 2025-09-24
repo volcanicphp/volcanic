@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -24,7 +23,7 @@ class ApiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): JsonResponse|ResourceCollection|LengthAwarePaginator
+    public function index(Request $request): ResourceCollection
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -33,21 +32,21 @@ class ApiController extends Controller
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
-        $data = $apiConfig->paginated ? $query->paginate($apiConfig->perPage) : $query->get();
+        $data = $apiConfig->paginate
+            ? $query->paginate($apiConfig->perPage)
+            : $query->get();
 
         try {
             return $data->toResourceCollection();
         } catch (LogicException) {
-            return $data instanceof LengthAwarePaginator
-                ? $data
-                : new JsonResponse(['data' => $data]);
+            return new ResourceCollection($data);
         }
     }
 
     /**
      * Store a newly created resource.
      */
-    public function store(Request $request): JsonResponse|JsonResource
+    public function store(Request $request): JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -61,14 +60,14 @@ class ApiController extends Controller
         try {
             return $model->toResource();
         } catch (LogicException) {
-            return new JsonResponse(['data' => $model], 201);
+            return new JsonResource($model);
         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $id): JsonResponse|JsonResource
+    public function show(Request $request, string $id): JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -80,14 +79,14 @@ class ApiController extends Controller
         try {
             return $model->toResource();
         } catch (LogicException) {
-            return new JsonResponse(['data' => $model]);
+            return new JsonResource($model);
         }
     }
 
     /**
      * Update the specified resource.
      */
-    public function update(Request $request, string $id): JsonResponse|JsonResource
+    public function update(Request $request, string $id): JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -103,7 +102,7 @@ class ApiController extends Controller
         try {
             return $model->toResource();
         } catch (LogicException) {
-            return new JsonResponse(['data' => $model]);
+            return new JsonResource($model);
         }
     }
 
@@ -127,7 +126,7 @@ class ApiController extends Controller
     /**
      * Restore the specified soft deleted resource.
      */
-    public function restore(Request $request, string $id): JsonResponse|JsonResource
+    public function restore(Request $request, string $id): JsonResource|JsonResponse
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -153,7 +152,7 @@ class ApiController extends Controller
         try {
             return $model->toResource();
         } catch (LogicException) {
-            return new JsonResponse(['data' => $model]);
+            return new JsonResource($model);
         }
     }
 

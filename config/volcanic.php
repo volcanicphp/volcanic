@@ -36,17 +36,4 @@ return [
     */
     'default_per_page' => 15,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Global Middleware
-    |--------------------------------------------------------------------------
-    |
-    | Middleware that should be applied to all automatically discovered
-    | API routes.
-    |
-    */
-    'global_middleware' => [
-        // 'auth:sanctum',
-        // 'throttle:api',
-    ],
 ];
