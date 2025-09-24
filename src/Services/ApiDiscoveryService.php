@@ -78,7 +78,7 @@ class ApiDiscoveryService
         $prefix = $apiAttribute->getPrefix();
         $operations = $apiAttribute->getOperations();
 
-        Route::prefix($prefix)->group(function () use ($resourceName, $modelClass, $apiAttribute, $operations): void {
+        Route::middleware('api')->prefix($prefix)->group(function () use ($resourceName, $modelClass, $apiAttribute, $operations): void {
             $controllerClass = ApiController::class;
 
             // Apply middleware if specified
