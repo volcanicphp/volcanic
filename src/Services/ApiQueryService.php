@@ -57,36 +57,78 @@ class ApiQueryService
      */
     protected function applyFiltering(Builder $query, API $apiConfig, Request $request): void
     {
-        foreach ($apiConfig->filterable as $field) {
-            $value = $request->input("filter[{$field}]");
+        $filter = $request->array('filter');
 
+        foreach ($filter as $filterKey => $value) {
             if ($value === null) {
                 continue;
             }
 
-            // Handle different filter types
-            if (is_array($value)) {
-                $query->whereIn($field, $value);
-            } elseif (str_contains((string) $value, ',')) {
-                $query->whereIn($field, explode(',', (string) $value));
-            } elseif (str_contains((string) $value, '|')) {
-                // Range filter (e.g., "10|20" for between 10 and 20)
-                $range = explode('|', (string) $value, 2);
-                if (count($range) === 2) {
-                    $query->whereBetween($field, [$range[0], $range[1]]);
-                }
-            } elseif (str_starts_with((string) $value, '>')) {
-                $query->where($field, '>', substr((string) $value, 1));
-            } elseif (str_starts_with((string) $value, '<')) {
-                $query->where($field, '<', substr((string) $value, 1));
-            } elseif (str_starts_with((string) $value, '>=')) {
-                $query->where($field, '>=', substr((string) $value, 2));
-            } elseif (str_starts_with((string) $value, '<=')) {
-                $query->where($field, '<=', substr((string) $value, 2));
-            } elseif (str_starts_with((string) $value, '!=')) {
-                $query->where($field, '!=', substr((string) $value, 2));
-            } else {
-                $query->where($field, $value);
+            // Parse field and operator from filter key (e.g., "count:gte" or just "count")
+            $parts = explode(':', $filterKey, 2);
+            $field = $parts[0];
+            $operator = $parts[1] ?? 'eq'; // Default to equals if no operator specified
+
+            // Check if field is filterable
+            if (! in_array($field, $apiConfig->filterable, true)) {
+                continue;
+            }
+
+            // Apply filter based on operator
+            match ($operator) {
+                'eq' => $query->where($field, $value),
+                'not' => $query->where($field, '!=', $value),
+                'gt' => $query->where($field, '>', $value),
+                'gte' => $query->where($field, '>=', $value),
+                'lt' => $query->where($field, '<', $value),
+                'lte' => $query->where($field, '<=', $value),
+                'in' => $this->applyInFilter($query, $field, $value),
+                'not_in' => $this->applyNotInFilter($query, $field, $value),
+                'between' => $this->applyBetweenFilter($query, $field, $value),
+                default => $query->where($field, $value), // Fallback to equals
+            };
+        }
+    }
+
+    /**
+     * Apply IN filter to the query.
+     */
+    protected function applyInFilter(Builder $query, string $field, mixed $value): void
+    {
+        if (is_array($value)) {
+            $query->whereIn($field, $value);
+        } elseif (is_string($value) && str_contains($value, ',')) {
+            $query->whereIn($field, explode(',', $value));
+        } else {
+            $query->where($field, $value);
+        }
+    }
+
+    /**
+     * Apply NOT IN filter to the query.
+     */
+    protected function applyNotInFilter(Builder $query, string $field, mixed $value): void
+    {
+        if (is_array($value)) {
+            $query->whereNotIn($field, $value);
+        } elseif (is_string($value) && str_contains($value, ',')) {
+            $query->whereNotIn($field, explode(',', $value));
+        } else {
+            $query->where($field, '!=', $value);
+        }
+    }
+
+    /**
+     * Apply BETWEEN filter to the query.
+     */
+    protected function applyBetweenFilter(Builder $query, string $field, mixed $value): void
+    {
+        if (is_array($value) && count($value) === 2) {
+            $query->whereBetween($field, [$value[0], $value[1]]);
+        } elseif (is_string($value) && str_contains($value, ',')) {
+            $range = explode(',', $value, 2);
+            if (count($range) === 2) {
+                $query->whereBetween($field, [$range[0], $range[1]]);
             }
         }
     }
