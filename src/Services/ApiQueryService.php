@@ -116,7 +116,7 @@ class ApiQueryService
      */
     protected function applySoftDeletes(Builder $query, API $apiConfig, Request $request): void
     {
-        if (! $apiConfig->softDeletes) {
+        if (! $apiConfig->isSoftDeletesEnabled()) {
             return;
         }
 

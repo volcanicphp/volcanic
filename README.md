@@ -1,4 +1,13 @@
-# The ultimate solution for Laravel APIs
+# The ultimate so- ✅ **Automatic CRUD API generation** with PHP attributes
+
+-   ✅ **Advanced query capabilities** (sorting, filtering, searching)
+-   ✅ **Built-in pagination** with customizable settings
+-   ✅ **Flexible validation** with per-operation rules
+-   ✅ **Middleware support** for authentication and authorization
+-   ✅ **Field visibility control** (hidden/visible fields)
+-   ✅ **Smart soft delete handling** with automatic trait detection
+-   ✅ **Route customization** (prefix, names, operations)
+-   ✅ **Auto-discovery** with manual override optionsution for Laravel APIs
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/volcanic/volcanic.svg?style=flat-square)](https://packagist.org/packages/volcanic/volcanic)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/volcanic/volcanic/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/volcanic/volcanic/actions?query=workflow%3Arun-tests+branch%3Amain)

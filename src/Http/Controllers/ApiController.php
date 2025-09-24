@@ -148,7 +148,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        if (! $apiConfig->softDeletes) {
+        if (! $apiConfig->isSoftDeletesEnabled()) {
             return new JsonResponse([
                 'message' => 'Soft deletes are not enabled for this resource',
             ], 400);
@@ -185,7 +185,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        if (! $apiConfig->softDeletes) {
+        if (! $apiConfig->isSoftDeletesEnabled()) {
             return new JsonResponse([
                 'message' => 'Soft deletes are not enabled for this resource',
             ], 400);
@@ -211,7 +211,7 @@ class ApiController extends Controller
     {
         $query = $modelClass::query();
 
-        if ($apiConfig->softDeletes) {
+        if ($apiConfig->isSoftDeletesEnabled()) {
             $model = new $modelClass;
             if (method_exists($model, 'withTrashed')) {
                 $query = $query->withTrashed();

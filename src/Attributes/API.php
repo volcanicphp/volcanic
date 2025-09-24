@@ -20,7 +20,7 @@ class API
         public readonly array $sortable = [],
         public readonly array $filterable = [],
         public readonly array $searchable = [],
-        public readonly bool $softDeletes = false,
+        public readonly ?bool $softDeletes = null,
         public readonly array $validation = [],
         public readonly array $hidden = [],
         public readonly array $visible = [],
@@ -34,13 +34,13 @@ class API
         $defaultOperations = ['index', 'show', 'store', 'update', 'destroy'];
 
         // Add soft delete operations if enabled
-        if ($this->softDeletes) {
+        if ($this->isSoftDeletesEnabled()) {
             $defaultOperations[] = 'restore';
             $defaultOperations[] = 'forceDelete';
         }
 
         if (! empty($this->only)) {
-            return array_intersect($defaultOperations, $this->only);
+            return array_values(array_intersect($defaultOperations, $this->only));
         }
 
         if (! empty($this->except)) {
@@ -48,6 +48,22 @@ class API
         }
 
         return $defaultOperations;
+    }
+
+    /**
+     * Check if soft deletes is enabled.
+     */
+    public function isSoftDeletesEnabled(): bool
+    {
+        return $this->softDeletes === true;
+    }
+
+    /**
+     * Check if soft deletes was explicitly set (not null).
+     */
+    public function isSoftDeletesExplicitlySet(): bool
+    {
+        return $this->softDeletes !== null;
     }
 
     /**
@@ -114,5 +130,28 @@ class API
             'hidden' => $this->hidden,
             'visible' => $this->visible,
         ];
+    }
+
+    /**
+     * Create a new API instance with softDeletes enabled.
+     */
+    public function withSoftDeletes(bool $softDeletes = true): self
+    {
+        return new self(
+            prefix: $this->prefix,
+            name: $this->name,
+            only: $this->only,
+            except: $this->except,
+            middleware: $this->middleware,
+            paginated: $this->paginated,
+            perPage: $this->perPage,
+            sortable: $this->sortable,
+            filterable: $this->filterable,
+            searchable: $this->searchable,
+            softDeletes: $softDeletes,
+            validation: $this->validation,
+            hidden: $this->hidden,
+            visible: $this->visible,
+        );
     }
 }

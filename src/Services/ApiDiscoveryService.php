@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -42,12 +43,23 @@ class ApiDiscoveryService
                 if ($className && class_exists($className)) {
                     $reflection = new ReflectionClass($className);
 
-                    if ($this->isEloquentModel($reflection)) {
-                        $attributes = $reflection->getAttributes(API::class);
+                    if (! $this->isEloquentModel($reflection)) {
+                        continue;
+                    }
 
-                        if (! empty($attributes)) {
-                            $models[$className] = $attributes[0]->newInstance();
+                    $attributes = $reflection->getAttributes(API::class);
+
+                    $reflectionAttribute = Arr::first($attributes);
+
+                    if ($reflectionAttribute) {
+                        // Automatically enable softDeletes if not explicitly set and the model uses the SoftDeletes trait
+                        if (! $apiAttribute->isSoftDeletesExplicitlySet() && $this->usesSoftDeletes($reflection)) {
+                            $apiAttribute = $apiAttribute->withSoftDeletes(true);
+                        } else {
+                            $apiAttribute = $reflectionAttribute->newInstance();
                         }
+
+                        $models[$className] = $apiAttribute;
                     }
                 }
             }
@@ -107,7 +119,7 @@ class ApiDiscoveryService
             }
 
             if (in_array('restore', $operations, true)) {
-                $route->patch($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
+                $route->post($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute);
             }
@@ -177,5 +189,15 @@ class ApiDiscoveryService
     protected function isEloquentModel(ReflectionClass $reflection): bool
     {
         return $reflection->isSubclassOf(Model::class) && ! $reflection->isAbstract();
+    }
+
+    /**
+     * Check if the model uses the SoftDeletes trait.
+     */
+    protected function usesSoftDeletes(ReflectionClass $reflection): bool
+    {
+        $traits = $reflection->getTraitNames();
+
+        return in_array('Illuminate\Database\Eloquent\SoftDeletes', $traits, true);
     }
 }
