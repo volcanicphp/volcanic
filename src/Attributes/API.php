@@ -24,7 +24,6 @@ class API
         public readonly array $validation = [],
         public readonly array $hidden = [],
         public readonly array $visible = [],
-        public readonly ?string $transformer = null,
     ) {}
 
     /**

@@ -7,9 +7,10 @@ namespace Volcanic\Http\Controllers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiQueryService;
@@ -23,7 +24,7 @@ class ApiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse|ResourceCollection|LengthAwarePaginator
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -36,43 +37,40 @@ class ApiController extends Controller
             $data = $query->get();
         }
 
-        return response()->json([
-            'data' => $this->transformData($data, $apiConfig),
-            'meta' => $this->getMeta($data, $apiConfig),
-        ]);
+        try {
+            return $data->toResourceCollection();
+        } catch (\LogicException) {
+            return $data instanceof LengthAwarePaginator
+                ? $data
+                : new JsonResponse(['data' => $data]);
+        }
     }
 
     /**
      * Store a newly created resource.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse|JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
         $validator = $this->validateRequest($request, $apiConfig, 'store');
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+        $validator->validate();
+
+        $model = $modelClass::create($validator->validated());
+
+        try {
+            return $model->toResource();
+        } catch (\LogicException) {
+            return new JsonResponse(['data' => $model], 201);
         }
-
-        $model = new $modelClass;
-        $model->fill($validator->validated());
-        $model->save();
-
-        return response()->json([
-            'message' => 'Resource created successfully',
-            'data' => $this->transformData($model, $apiConfig),
-        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse|JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -80,20 +78,22 @@ class ApiController extends Controller
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
         if (! $model) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Resource not found',
             ], 404);
         }
 
-        return response()->json([
-            'data' => $this->transformData($model, $apiConfig),
-        ]);
+        try {
+            return $model->toResource();
+        } catch (\LogicException) {
+            return new JsonResponse(['data' => $model]);
+        }
     }
 
     /**
      * Update the specified resource.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, string $id): JsonResponse|JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
@@ -101,27 +101,22 @@ class ApiController extends Controller
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
         if (! $model) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Resource not found',
             ], 404);
         }
 
         $validator = $this->validateRequest($request, $apiConfig, 'update', $model);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+        $validator->validate();
+
+        $model->update($validator->validated());
+
+        try {
+            return $model->toResource();
+        } catch (\LogicException) {
+            return new JsonResponse(['data' => $model]);
         }
-
-        $model->fill($validator->validated());
-        $model->save();
-
-        return response()->json([
-            'message' => 'Resource updated successfully',
-            'data' => $this->transformData($model, $apiConfig),
-        ]);
     }
 
     /**
@@ -135,28 +130,26 @@ class ApiController extends Controller
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
         if (! $model) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Resource not found',
             ], 404);
         }
 
         $model->delete();
 
-        return response()->json([
-            'message' => 'Resource deleted successfully',
-        ], 204);
+        return new JsonResponse(status: 204);
     }
 
     /**
      * Restore the specified soft deleted resource.
      */
-    public function restore(Request $request, string $id): JsonResponse
+    public function restore(Request $request, string $id): JsonResponse|JsonResource
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
         if (! $apiConfig->softDeletes) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Soft deletes are not enabled for this resource',
             ], 400);
         }
@@ -164,7 +157,7 @@ class ApiController extends Controller
         $model = $this->findTrashedModel($modelClass, $id);
 
         if (! $model) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Trashed resource not found',
             ], 404);
         }
@@ -172,15 +165,16 @@ class ApiController extends Controller
         if (method_exists($model, 'restore')) {
             $model->restore();
         } else {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Model does not support soft deletes',
             ], 400);
         }
 
-        return response()->json([
-            'message' => 'Resource restored successfully',
-            'data' => $this->transformData($model, $apiConfig),
-        ]);
+        try {
+            return $model->toResource();
+        } catch (\LogicException) {
+            return new JsonResponse(['data' => $model]);
+        }
     }
 
     /**
@@ -192,7 +186,7 @@ class ApiController extends Controller
         $apiConfig = $request->route()->defaults['api_config'];
 
         if (! $apiConfig->softDeletes) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Soft deletes are not enabled for this resource',
             ], 400);
         }
@@ -200,16 +194,14 @@ class ApiController extends Controller
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
         if (! $model) {
-            return response()->json([
+            return new JsonResponse([
                 'message' => 'Resource not found',
             ], 404);
         }
 
         $model->forceDelete();
 
-        return response()->json([
-            'message' => 'Resource permanently deleted',
-        ], 204);
+        return new JsonResponse(status: 204);
     }
 
     /**
@@ -256,39 +248,6 @@ class ApiController extends Controller
         $operationRules = $rules[$operation] ?? $rules['default'] ?? [];
 
         return Validator::make($request->all(), $operationRules);
-    }
-
-    /**
-     * Transform the data based on the API configuration.
-     */
-    protected function transformData($data, API $apiConfig): mixed
-    {
-        if ($apiConfig->transformer && class_exists($apiConfig->transformer)) {
-            $transformer = new $apiConfig->transformer;
-
-            return $transformer->transform($data);
-        }
-
-        // Apply field visibility
-        $visibility = $apiConfig->getFieldVisibility();
-
-        if ($data instanceof LengthAwarePaginator) {
-            $items = $data->getCollection()->map(function ($item) use ($visibility) {
-                return $this->applyFieldVisibility($item, $visibility);
-            });
-
-            $data->setCollection($items);
-
-            return $data;
-        }
-
-        if ($data instanceof Collection) {
-            return $data->map(function ($item) use ($visibility) {
-                return $this->applyFieldVisibility($item, $visibility);
-            });
-        }
-
-        return $this->applyFieldVisibility($data, $visibility);
     }
 
     /**
