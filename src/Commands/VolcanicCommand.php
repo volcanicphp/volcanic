@@ -1,12 +1,14 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+declare(strict_types=1);
+
+namespace Volcanic\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class VolcanicCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'volcanic';
 
     public $description = 'My command';
 
