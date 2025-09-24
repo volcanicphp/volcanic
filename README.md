@@ -4,7 +4,6 @@
 -   ✅ **Built-in pagination** with customizable settings
 -   ✅ **Flexible validation** with per-operation rules
 -   ✅ **Middleware support** for authentication and authorization
--   ✅ **Field visibility control** (hidden/visible fields)
 -   ✅ **Smart soft delete handling** with automatic trait detection
 -   ✅ **Route customization** (prefix, names, operations)
 -   ✅ **Auto-discovery** with manual override optionsution for Laravel APIs
@@ -23,7 +22,6 @@ Volcanic is a Laravel package that provides a powerful, attribute-based approach
 -   ✅ **Built-in pagination** with customizable settings
 -   ✅ **Flexible validation** with per-operation rules
 -   ✅ **Middleware support** for authentication and authorization
--   ✅ **Field visibility control** (hidden/visible fields)
 -   ✅ **Soft delete handling** with restore and force delete operations
 -   ✅ **Route customization** (prefix, names, operations)
 -   ✅ **Auto-discovery** with manual override options
@@ -93,7 +91,7 @@ This automatically creates these endpoints:
     sortable: ['name', 'created_at'],
     filterable: ['status', 'type'],
     searchable: ['name', 'email'],
-    validation: [
+    rules: [
         'store' => [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users'

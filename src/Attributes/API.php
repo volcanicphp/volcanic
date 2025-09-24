@@ -25,9 +25,7 @@ class API
         public readonly array $searchable = [],
         public readonly ?bool $softDeletes = null,
         public readonly ?bool $scoutSearch = null,
-        public readonly array $validation = [],
-        public readonly array $hidden = [],
-        public readonly array $visible = [],
+        public readonly array $rules = [],
     ) {}
 
     /**
@@ -137,18 +135,7 @@ class API
      */
     public function getValidationRules(): array
     {
-        return $this->validation;
-    }
-
-    /**
-     * Get field visibility configuration.
-     */
-    public function getFieldVisibility(): array
-    {
-        return [
-            'hidden' => $this->hidden,
-            'visible' => $this->visible,
-        ];
+        return $this->rules;
     }
 
     /**
@@ -218,9 +205,7 @@ class API
             searchable: $this->searchable,
             softDeletes: $softDeletes,
             scoutSearch: $this->scoutSearch,
-            validation: $this->validation,
-            hidden: $this->hidden,
-            visible: $this->visible,
+            rules: $this->rules,
         );
     }
 }

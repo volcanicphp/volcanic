@@ -208,26 +208,6 @@ class ApiController extends Controller
     }
 
     /**
-     * Apply field visibility rules.
-     */
-    protected function applyFieldVisibility($item, array $visibility): mixed
-    {
-        if (! $item instanceof Model) {
-            return $item;
-        }
-
-        if (! empty($visibility['visible'])) {
-            $item->makeVisible($visibility['visible']);
-        }
-
-        if (! empty($visibility['hidden'])) {
-            $item->makeHidden($visibility['hidden']);
-        }
-
-        return $item;
-    }
-
-    /**
      * Validate the request data.
      */
     protected function validateRequest(Request $request, API $apiConfig, string $operation, ?Model $model = null): \Illuminate\Contracts\Validation\Validator

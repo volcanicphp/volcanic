@@ -18,7 +18,7 @@ use Volcanic\Tests\TestCase;
     sortable: ['name'],
     filterable: ['status'],
     searchable: ['name', 'description'],
-    validation: [
+    rules: [
         'store' => [
             'name' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',

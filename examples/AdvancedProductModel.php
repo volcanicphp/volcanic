@@ -20,7 +20,7 @@ use Volcanic\Attributes\API;
     paginate: true,
     perPage: 20,
     middleware: ['auth:sanctum'],
-    validation: [
+    rules: [
         'store' => [
             'name' => 'required|string|max:255',
             'description' => 'required|string',
