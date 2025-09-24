@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Volcanic\Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+use Volcanic\Attributes\API;
+
+class ApiAttributeTest extends TestCase
+{
+    public function test_api_attribute_can_be_instantiated(): void
+    {
+        $api = new API;
+
+        $this->assertInstanceOf(API::class, $api);
+        $this->assertEquals('api', $api->getPrefix());
+        $this->assertTrue($api->paginated);
+        $this->assertEquals(15, $api->perPage);
+    }
+
+    public function test_api_attribute_with_custom_configuration(): void
+    {
+        $api = new API(
+            prefix: 'v1',
+            name: 'custom-users',
+            only: ['index', 'show'],
+            middleware: ['auth:sanctum'],
+            paginated: false,
+            perPage: 25
+        );
+
+        $this->assertEquals('v1', $api->getPrefix());
+        $this->assertEquals('custom-users', $api->getName());
+        $this->assertEquals(['index', 'show'], $api->getOperations());
+        $this->assertEquals(['auth:sanctum'], $api->middleware);
+        $this->assertFalse($api->paginated);
+        $this->assertEquals(25, $api->perPage);
+    }
+
+    public function test_api_attribute_operations_with_except(): void
+    {
+        $api = new API(except: ['destroy']);
+
+        $expectedOperations = ['index', 'show', 'store', 'update'];
+        $this->assertEquals($expectedOperations, $api->getOperations());
+    }
+
+    public function test_api_attribute_allows_operation(): void
+    {
+        $api = new API(only: ['index', 'show']);
+
+        $this->assertTrue($api->allowsOperation('index'));
+        $this->assertTrue($api->allowsOperation('show'));
+        $this->assertFalse($api->allowsOperation('store'));
+        $this->assertFalse($api->allowsOperation('destroy'));
+    }
+
+    public function test_api_attribute_query_features(): void
+    {
+        $api = new API(
+            sortable: ['name', 'created_at'],
+            filterable: ['status', 'category'],
+            searchable: ['name', 'description']
+        );
+
+        $features = $api->getQueryFeatures();
+
+        $this->assertEquals(['name', 'created_at'], $features['sortable']);
+        $this->assertEquals(['status', 'category'], $features['filterable']);
+        $this->assertEquals(['name', 'description'], $features['searchable']);
+    }
+}

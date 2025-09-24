@@ -5,15 +5,19 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/volcanic/volcanic/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/volcanic/volcanic/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/volcanic/volcanic.svg?style=flat-square)](https://packagist.org/packages/volcanic/volcanic)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Volcanic is a Laravel package that provides a powerful, attribute-based approach to creating RESTful APIs. Simply add the `#[API]` attribute to your Eloquent models and get full CRUD operations automatically, with advanced features like filtering, sorting, searching, pagination, and validation.
 
-## Support us
+## Features
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/volcanic.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/volcanic)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+-   ✅ **Automatic CRUD API generation** with PHP attributes
+-   ✅ **Advanced query capabilities** (sorting, filtering, searching)
+-   ✅ **Built-in pagination** with customizable settings
+-   ✅ **Flexible validation** with per-operation rules
+-   ✅ **Middleware support** for authentication and authorization
+-   ✅ **Field visibility control** (hidden/visible fields)
+-   ✅ **Soft delete handling** with restore and force delete operations
+-   ✅ **Route customization** (prefix, names, operations)
+-   ✅ **Auto-discovery** with manual override options
 
 ## Installation
 
@@ -21,13 +25,6 @@ You can install the package via composer:
 
 ```bash
 composer require volcanic/volcanic
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="volcanic-migrations"
-php artisan migrate
 ```
 
 You can publish the config file with:
@@ -51,9 +48,88 @@ php artisan vendor:publish --tag="volcanic-views"
 
 ## Usage
 
+### Basic Usage
+
+Add the `#[API]` attribute to any Eloquent model to automatically expose CRUD operations:
+
 ```php
-$volcanic = new Volcanic();
-echo $volcanic->echoPhrase('Hello, Volcanic!');
+<?php
+
+use Illuminate\Database\Eloquent\Model;
+use Volcanic\Attributes\API;
+
+#[API]
+class User extends Model
+{
+    protected $fillable = ['name', 'email'];
+}
+```
+
+This automatically creates these endpoints:
+
+-   `GET /api/users` - List users (paginated)
+-   `GET /api/users/{id}` - Show specific user
+-   `POST /api/users` - Create user
+-   `PUT /api/users/{id}` - Update user
+-   `DELETE /api/users/{id}` - Delete user
+
+### Advanced Configuration
+
+```php
+#[API(
+    prefix: 'v1',
+    name: 'customers',
+    only: ['index', 'show', 'store'],
+    middleware: ['auth:sanctum'],
+    sortable: ['name', 'created_at'],
+    filterable: ['status', 'type'],
+    searchable: ['name', 'email'],
+    validation: [
+        'store' => [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users'
+        ]
+    ]
+)]
+class User extends Model
+{
+    // ...
+}
+```
+
+### Query Features
+
+```php
+// Pagination
+GET /api/users?page=2&per_page=10
+
+// Sorting
+GET /api/users?sort_by=name&sort_direction=desc
+
+// Filtering
+GET /api/users?filter[status]=active&filter[created_at]=>2023-01-01
+
+// Searching
+GET /api/users?search=john
+
+// Field selection
+GET /api/users?fields=id,name,email
+
+// Include relationships
+GET /api/users?with=posts,profile
+```
+
+### Management Commands
+
+```bash
+# List all API-enabled models
+php artisan volcanic list
+
+# Manually discover routes
+php artisan volcanic discover
+
+# Show registered routes
+php artisan volcanic routes
 ```
 
 ## Testing
@@ -76,8 +152,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Volcanic](https://github.com/volcanicphp)
-- [All Contributors](../../contributors)
+-   [Volcanic](https://github.com/volcanicphp)
+-   [All Contributors](../../contributors)
 
 ## License
 
