@@ -141,6 +141,12 @@ class ApiQueryService
             return;
         }
 
+        if ($this->shouldUseScoutSearch($query, $apiConfig)) {
+            $this->applyScoutSearch($query, $search);
+
+            return;
+        }
+
         $query->where(function (Builder $searchQuery) use ($apiConfig, $search): void {
             foreach ($apiConfig->searchable as $field) {
                 $searchQuery->orWhere($field, 'LIKE', "%{$search}%");
@@ -209,6 +215,61 @@ class ApiQueryService
         }
 
         $query->select($fieldList);
+    }
+
+    /**
+     * Determine if Scout search should be used.
+     */
+    protected function shouldUseScoutSearch(Builder $query, API $apiConfig): bool
+    {
+        $model = $query->getModel();
+
+        if ($apiConfig->isScoutSearchExplicitlySet() && ! $apiConfig->isScoutSearchEnabled()) {
+            return false;
+        }
+
+        if ($apiConfig->isScoutSearchEnabled()) {
+            return true;
+        }
+
+        return $this->modelUsesScoutSearchable($model) && class_exists('Laravel\Scout\Searchable');
+    }
+
+    /**
+     * Check if model uses the Scout Searchable trait.
+     */
+    protected function modelUsesScoutSearchable($model): bool
+    {
+        if (! class_exists('Laravel\Scout\Searchable')) {
+            return false;
+        }
+
+        $traits = class_uses_recursive(get_class($model));
+
+        return in_array('Laravel\Scout\Searchable', $traits, true);
+    }
+
+    /**
+     * Apply Scout search to the query.
+     */
+    protected function applyScoutSearch(Builder $query, string $search): void
+    {
+        try {
+            $model = $query->getModel();
+
+            $scoutResults = $model::search($search);
+            $modelIds = $scoutResults->keys();
+
+            if ($modelIds->isEmpty()) {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $query->whereIn($model->getKeyName(), $modelIds->toArray());
+        } catch (Exception $e) {
+            $query->whereRaw('1 = 0');
+        }
     }
 
     /**

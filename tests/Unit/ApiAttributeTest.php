@@ -70,4 +70,22 @@ class ApiAttributeTest extends TestCase
         $this->assertEquals(['status', 'category'], $features['filterable']);
         $this->assertEquals(['name', 'description'], $features['searchable']);
     }
+
+    public function test_api_attribute_scout_search_configuration(): void
+    {
+        // Test explicitly enabled
+        $api = new API(scoutSearch: true);
+        $this->assertTrue($api->isScoutSearchEnabled());
+        $this->assertTrue($api->isScoutSearchExplicitlySet());
+
+        // Test explicitly disabled
+        $api = new API(scoutSearch: false);
+        $this->assertFalse($api->isScoutSearchEnabled());
+        $this->assertTrue($api->isScoutSearchExplicitlySet());
+
+        // Test default (not set)
+        $api = new API;
+        $this->assertFalse($api->isScoutSearchEnabled());
+        $this->assertFalse($api->isScoutSearchExplicitlySet());
+    }
 }

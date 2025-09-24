@@ -24,6 +24,7 @@ class API
         public readonly array $filterable = [],
         public readonly array $searchable = [],
         public readonly ?bool $softDeletes = null,
+        public readonly ?bool $scoutSearch = null,
         public readonly array $validation = [],
         public readonly array $hidden = [],
         public readonly array $visible = [],
@@ -66,6 +67,22 @@ class API
     public function isSoftDeletesExplicitlySet(): bool
     {
         return $this->softDeletes !== null;
+    }
+
+    /**
+     * Check if scout search was explicitly set (not null).
+     */
+    public function isScoutSearchExplicitlySet(): bool
+    {
+        return $this->scoutSearch !== null;
+    }
+
+    /**
+     * Check if scout search is enabled.
+     */
+    public function isScoutSearchEnabled(): bool
+    {
+        return $this->scoutSearch === true;
     }
 
     /**
@@ -200,6 +217,7 @@ class API
             filterable: $this->filterable,
             searchable: $this->searchable,
             softDeletes: $softDeletes,
+            scoutSearch: $this->scoutSearch,
             validation: $this->validation,
             hidden: $this->hidden,
             visible: $this->visible,
