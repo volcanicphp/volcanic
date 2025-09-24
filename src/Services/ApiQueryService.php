@@ -21,6 +21,8 @@ class ApiQueryService
         $this->applyFiltering($query, $apiConfig, $request);
         $this->applySearching($query, $apiConfig, $request);
         $this->applySoftDeletes($query, $apiConfig, $request);
+        $this->applyWith($query, $request);
+        $this->applySelect($query, $request);
 
         return $query;
     }
@@ -147,7 +149,9 @@ class ApiQueryService
         $relationships = is_string($with) ? explode(',', $with) : $with;
 
         // Sanitize relationship names
-        $relationships = array_map(fn ($relation): ?string => preg_replace('/[^a-zA-Z0-9_.]/', '', (string) $relation), $relationships);
+        $relationships = array_map(fn ($relation): ?string => preg_replace(
+            '/[^a-zA-Z0-9_.]/', '', (string) $relation
+        ), $relationships);
 
         $query->with($relationships);
     }

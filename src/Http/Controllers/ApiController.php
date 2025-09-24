@@ -29,7 +29,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        $this->authorizeIfPolicyExists('viewAny', $modelClass);
+        $this->authorizeRequest('viewAny', $modelClass);
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
@@ -52,11 +52,9 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        $this->authorizeIfPolicyExists('create', $modelClass);
+        $this->authorizeRequest('create', $modelClass);
 
         $validator = $this->validateRequest($request, $apiConfig, 'store');
-
-        $validator->validate();
 
         $model = $modelClass::create($validator->validated());
 
@@ -77,13 +75,7 @@ class ApiController extends Controller
 
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
-        if (! $model) {
-            return new JsonResponse([
-                'message' => 'Resource not found',
-            ], 404);
-        }
-
-        $this->authorizeIfPolicyExists('view', $model);
+        $this->authorizeRequest('view', $model);
 
         try {
             return $model->toResource();
@@ -102,17 +94,9 @@ class ApiController extends Controller
 
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
-        if (! $model) {
-            return new JsonResponse([
-                'message' => 'Resource not found',
-            ], 404);
-        }
-
-        $this->authorizeIfPolicyExists('update', $model);
+        $this->authorizeRequest('update', $model);
 
         $validator = $this->validateRequest($request, $apiConfig, 'update', $model);
-
-        $validator->validate();
 
         $model->update($validator->validated());
 
@@ -133,13 +117,7 @@ class ApiController extends Controller
 
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
-        if (! $model) {
-            return new JsonResponse([
-                'message' => 'Resource not found',
-            ], 404);
-        }
-
-        $this->authorizeIfPolicyExists('delete', $model);
+        $this->authorizeRequest('delete', $model);
 
         $model->delete();
 
@@ -162,13 +140,7 @@ class ApiController extends Controller
 
         $model = $this->findTrashedModel($modelClass, $id);
 
-        if (! $model) {
-            return new JsonResponse([
-                'message' => 'Trashed resource not found',
-            ], 404);
-        }
-
-        $this->authorizeIfPolicyExists('restore', $model);
+        $this->authorizeRequest('restore', $model);
 
         if (method_exists($model, 'restore')) {
             $model->restore();
@@ -201,13 +173,7 @@ class ApiController extends Controller
 
         $model = $this->findModel($modelClass, $id, $apiConfig);
 
-        if (! $model) {
-            return new JsonResponse([
-                'message' => 'Resource not found',
-            ], 404);
-        }
-
-        $this->authorizeIfPolicyExists('forceDelete', $model);
+        $this->authorizeRequest('forceDelete', $model);
 
         $model->forceDelete();
 
@@ -221,14 +187,11 @@ class ApiController extends Controller
     {
         $query = $modelClass::query();
 
-        if ($apiConfig->isSoftDeletesEnabled()) {
-            $model = new $modelClass;
-            if (method_exists($model, 'withTrashed')) {
-                $query = $query->withTrashed();
-            }
+        if ($apiConfig->isSoftDeletesEnabled() && method_exists($modelClass, 'withTrashed')) {
+            $query = $query->withTrashed();
         }
 
-        return $query->find($id);
+        return $query->findOrFail($id);
     }
 
     /**
@@ -237,27 +200,12 @@ class ApiController extends Controller
     protected function findTrashedModel(string $modelClass, string $id): ?Model
     {
         $query = $modelClass::query();
-        $model = new $modelClass;
 
-        if (method_exists($model, 'onlyTrashed')) {
+        if (method_exists($modelClass, 'onlyTrashed')) {
             $query = $query->onlyTrashed();
-        } else {
-            // If the model doesn't support soft deletes, return null
-            return null;
         }
 
-        return $query->find($id);
-    }
-
-    /**
-     * Validate the request data.
-     */
-    protected function validateRequest(Request $request, API $apiConfig, string $operation, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
-    {
-        $rules = $apiConfig->getValidationRules();
-        $operationRules = $rules[$operation] ?? $rules['default'] ?? [];
-
-        return Validator::make($request->all(), $operationRules);
+        return $query->findOrFail($id);
     }
 
     /**
@@ -281,12 +229,31 @@ class ApiController extends Controller
     }
 
     /**
+     * Validate the request data.
+     */
+    protected function validateRequest(Request $request, API $apiConfig, string $operation, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
+    {
+        $rules = $apiConfig->getValidationRules();
+        $operationRules = $rules[$operation] ?? $rules['default'] ?? [];
+
+        return Validator::make($request->all(), $operationRules);
+    }
+
+    /**
      * Authorize action only if a policy exists for the model.
      */
-    protected function authorizeIfPolicyExists(string $ability, string|Model $model): void
+    protected function authorizeRequest(string $ability, string|Model $model): void
     {
-        if (Gate::getPolicyFor($model) !== null) {
-            Gate::authorize($ability, $model);
+        $policy = Gate::getPolicyFor($model);
+
+        if (! $policy) {
+            return;
         }
+
+        if (! method_exists($policy, $ability)) {
+            return;
+        }
+
+        Gate::authorize($ability, $model);
     }
 }
