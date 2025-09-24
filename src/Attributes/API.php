@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Attributes;
 
 use Attribute;
+use Illuminate\Support\Arr;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class API
@@ -156,8 +157,8 @@ class API
         $specific = [];
 
         foreach ($this->middleware as $key => $value) {
-            if (is_string($key) && is_array($value)) {
-                $specific[$key] = $value;
+            if (is_string($key)) {
+                $specific[$key] = Arr::wrap($value);
             }
         }
 
