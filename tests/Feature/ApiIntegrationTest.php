@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Volcanic\Tests\Feature;
 
 use Illuminate\Database\Eloquent\Model;
+use Override;
+use ReflectionClass;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
@@ -34,6 +36,7 @@ class ApiIntegrationTest extends TestCase
 {
     protected ApiDiscoveryService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -51,7 +54,7 @@ class ApiIntegrationTest extends TestCase
 
     public function test_api_attribute_configuration_is_applied_correctly(): void
     {
-        $reflection = new \ReflectionClass(TestModel::class);
+        $reflection = new ReflectionClass(TestModel::class);
         $attributes = $reflection->getAttributes(API::class);
 
         $this->assertNotEmpty($attributes);

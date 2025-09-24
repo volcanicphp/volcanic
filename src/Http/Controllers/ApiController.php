@@ -13,6 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+use LogicException;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiQueryService;
 
@@ -34,15 +35,11 @@ class ApiController extends Controller
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
-        if ($apiConfig->paginated) {
-            $data = $query->paginate($apiConfig->perPage);
-        } else {
-            $data = $query->get();
-        }
+        $data = $apiConfig->paginated ? $query->paginate($apiConfig->perPage) : $query->get();
 
         try {
             return $data->toResourceCollection();
-        } catch (\LogicException) {
+        } catch (LogicException) {
             return $data instanceof LengthAwarePaginator
                 ? $data
                 : new JsonResponse(['data' => $data]);
@@ -67,7 +64,7 @@ class ApiController extends Controller
 
         try {
             return $model->toResource();
-        } catch (\LogicException) {
+        } catch (LogicException) {
             return new JsonResponse(['data' => $model], 201);
         }
     }
@@ -92,7 +89,7 @@ class ApiController extends Controller
 
         try {
             return $model->toResource();
-        } catch (\LogicException) {
+        } catch (LogicException) {
             return new JsonResponse(['data' => $model]);
         }
     }
@@ -123,7 +120,7 @@ class ApiController extends Controller
 
         try {
             return $model->toResource();
-        } catch (\LogicException) {
+        } catch (LogicException) {
             return new JsonResponse(['data' => $model]);
         }
     }
@@ -185,7 +182,7 @@ class ApiController extends Controller
 
         try {
             return $model->toResource();
-        } catch (\LogicException) {
+        } catch (LogicException) {
             return new JsonResponse(['data' => $model]);
         }
     }

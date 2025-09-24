@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Volcanic\Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
+use Override;
 use Volcanic\VolcanicServiceProvider;
 
 class TestCase extends Orchestra
 {
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,7 +23,7 @@ class TestCase extends Orchestra
         ];
     }
 
-    public function getEnvironmentSetUp($app)
+    public function getEnvironmentSetUp($app): void
     {
         config()->set('database.default', 'testing');
     }

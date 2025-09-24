@@ -39,11 +39,11 @@ class API
             $defaultOperations[] = 'forceDelete';
         }
 
-        if (! empty($this->only)) {
+        if ($this->only !== []) {
             return array_values(array_intersect($defaultOperations, $this->only));
         }
 
-        if (! empty($this->except)) {
+        if ($this->except !== []) {
             return array_diff($defaultOperations, $this->except);
         }
 

@@ -26,7 +26,7 @@ class VolcanicServiceProvider extends PackageServiceProvider
         $this->app->singleton(ApiDiscoveryService::class);
         $this->app->singleton(ApiQueryService::class);
 
-        $this->app->singleton(Volcanic::class, fn (Application $app) => new Volcanic(
+        $this->app->singleton(Volcanic::class, fn (Application $app): Volcanic => new Volcanic(
             $app->make(ApiDiscoveryService::class)
         ));
     }

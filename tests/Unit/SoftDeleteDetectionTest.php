@@ -6,6 +6,7 @@ namespace Volcanic\Tests\Unit;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Override;
 use ReflectionClass;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiDiscoveryService;
@@ -40,6 +41,7 @@ class SoftDeleteDetectionTest extends TestCase
 {
     protected ApiDiscoveryService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -122,11 +124,10 @@ class SoftDeleteDetectionTest extends TestCase
     /**
      * Helper method to call protected methods for testing.
      */
-    protected function callProtectedMethod($object, $method, array $parameters = [])
+    protected function callProtectedMethod($object, $method, array $parameters = []): mixed
     {
-        $reflection = new ReflectionClass(get_class($object));
+        $reflection = new ReflectionClass($object::class);
         $method = $reflection->getMethod($method);
-        $method->setAccessible(true);
 
         return $method->invokeArgs($object, $parameters);
     }

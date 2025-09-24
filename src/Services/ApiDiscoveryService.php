@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -77,7 +78,7 @@ class ApiDiscoveryService
         $prefix = $apiAttribute->getPrefix();
         $operations = $apiAttribute->getOperations();
 
-        Route::prefix($prefix)->group(function () use ($resourceName, $modelClass, $apiAttribute, $operations) {
+        Route::prefix($prefix)->group(function () use ($resourceName, $modelClass, $apiAttribute, $operations): void {
             $controllerClass = ApiController::class;
 
             // Apply middleware if specified
@@ -198,6 +199,6 @@ class ApiDiscoveryService
     {
         $traits = $reflection->getTraitNames();
 
-        return in_array('Illuminate\Database\Eloquent\SoftDeletes', $traits, true);
+        return in_array(SoftDeletes::class, $traits, true);
     }
 }

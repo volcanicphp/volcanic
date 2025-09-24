@@ -45,8 +45,8 @@ class SoftDeleteApiTest extends TestCase
     public function test_api_attribute_respects_only_filter_with_soft_deletes(): void
     {
         $api = new API(
-            softDeletes: true,
-            only: ['index', 'restore']
+            only: ['index', 'restore'],
+            softDeletes: true
         );
 
         $operations = $api->getOperations();
@@ -60,8 +60,8 @@ class SoftDeleteApiTest extends TestCase
     public function test_api_attribute_respects_except_filter_with_soft_deletes(): void
     {
         $api = new API(
-            softDeletes: true,
-            except: ['forceDelete', 'destroy']
+            except: ['forceDelete', 'destroy'],
+            softDeletes: true
         );
 
         $operations = $api->getOperations();
@@ -76,8 +76,8 @@ class SoftDeleteApiTest extends TestCase
     public function test_allows_operation_works_with_soft_delete_operations(): void
     {
         $api = new API(
-            softDeletes: true,
-            only: ['restore', 'forceDelete']
+            only: ['restore', 'forceDelete'],
+            softDeletes: true
         );
 
         $this->assertTrue($api->allowsOperation('restore'));

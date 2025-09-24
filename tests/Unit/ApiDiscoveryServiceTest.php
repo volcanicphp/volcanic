@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Volcanic\Tests\Unit;
 
+use Override;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
 
@@ -11,6 +12,7 @@ class ApiDiscoveryServiceTest extends TestCase
 {
     protected ApiDiscoveryService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

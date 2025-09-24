@@ -33,7 +33,7 @@ class ApiQueryService
         $sortBy = $request->get('sort_by');
         $sortDirection = $request->get('sort_direction', 'asc');
 
-        if (! $sortBy || empty($apiConfig->sortable)) {
+        if (! $sortBy || $apiConfig->sortable === []) {
             return;
         }
 
@@ -43,7 +43,7 @@ class ApiQueryService
         }
 
         // Validate sort direction
-        if (! in_array(strtolower($sortDirection), ['asc', 'desc'], true)) {
+        if (! in_array(strtolower((string) $sortDirection), ['asc', 'desc'], true)) {
             $sortDirection = 'asc';
         }
 
@@ -55,10 +55,6 @@ class ApiQueryService
      */
     protected function applyFiltering(Builder $query, API $apiConfig, Request $request): void
     {
-        if (empty($apiConfig->filterable)) {
-            return;
-        }
-
         foreach ($apiConfig->filterable as $field) {
             $value = $request->get("filter[{$field}]");
 
@@ -69,24 +65,24 @@ class ApiQueryService
             // Handle different filter types
             if (is_array($value)) {
                 $query->whereIn($field, $value);
-            } elseif (str_contains($value, ',')) {
-                $query->whereIn($field, explode(',', $value));
-            } elseif (str_contains($value, '|')) {
+            } elseif (str_contains((string) $value, ',')) {
+                $query->whereIn($field, explode(',', (string) $value));
+            } elseif (str_contains((string) $value, '|')) {
                 // Range filter (e.g., "10|20" for between 10 and 20)
-                $range = explode('|', $value, 2);
+                $range = explode('|', (string) $value, 2);
                 if (count($range) === 2) {
                     $query->whereBetween($field, [$range[0], $range[1]]);
                 }
-            } elseif (str_starts_with($value, '>')) {
-                $query->where($field, '>', substr($value, 1));
-            } elseif (str_starts_with($value, '<')) {
-                $query->where($field, '<', substr($value, 1));
-            } elseif (str_starts_with($value, '>=')) {
-                $query->where($field, '>=', substr($value, 2));
-            } elseif (str_starts_with($value, '<=')) {
-                $query->where($field, '<=', substr($value, 2));
-            } elseif (str_starts_with($value, '!=')) {
-                $query->where($field, '!=', substr($value, 2));
+            } elseif (str_starts_with((string) $value, '>')) {
+                $query->where($field, '>', substr((string) $value, 1));
+            } elseif (str_starts_with((string) $value, '<')) {
+                $query->where($field, '<', substr((string) $value, 1));
+            } elseif (str_starts_with((string) $value, '>=')) {
+                $query->where($field, '>=', substr((string) $value, 2));
+            } elseif (str_starts_with((string) $value, '<=')) {
+                $query->where($field, '<=', substr((string) $value, 2));
+            } elseif (str_starts_with((string) $value, '!=')) {
+                $query->where($field, '!=', substr((string) $value, 2));
             } else {
                 $query->where($field, $value);
             }
@@ -100,11 +96,11 @@ class ApiQueryService
     {
         $search = $request->get('search');
 
-        if (! $search || empty($apiConfig->searchable)) {
+        if (! $search || $apiConfig->searchable === []) {
             return;
         }
 
-        $query->where(function (Builder $searchQuery) use ($apiConfig, $search) {
+        $query->where(function (Builder $searchQuery) use ($apiConfig, $search): void {
             foreach ($apiConfig->searchable as $field) {
                 $searchQuery->orWhere($field, 'LIKE', "%{$search}%");
             }
@@ -151,9 +147,7 @@ class ApiQueryService
         $relationships = is_string($with) ? explode(',', $with) : $with;
 
         // Sanitize relationship names
-        $relationships = array_map(function ($relation) {
-            return preg_replace('/[^a-zA-Z0-9_.]/', '', $relation);
-        }, $relationships);
+        $relationships = array_map(fn ($relation): ?string => preg_replace('/[^a-zA-Z0-9_.]/', '', (string) $relation), $relationships);
 
         $query->with($relationships);
     }
@@ -173,9 +167,7 @@ class ApiQueryService
         $fieldList = is_string($fields) ? explode(',', $fields) : $fields;
 
         // Sanitize field names
-        $fieldList = array_map(function ($field) {
-            return preg_replace('/[^a-zA-Z0-9_]/', '', $field);
-        }, $fieldList);
+        $fieldList = array_map(fn ($field): ?string => preg_replace('/[^a-zA-Z0-9_]/', '', (string) $field), $fieldList);
 
         // Always include the primary key
         if (! in_array('id', $fieldList, true)) {
