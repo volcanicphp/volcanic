@@ -28,6 +28,28 @@ class ApiDiscoveryService
     }
 
     /**
+     * Register routes for a single model class (used for testing).
+     */
+    public function registerModelRoutes(string $modelClass): void
+    {
+        $reflection = new ReflectionClass($modelClass);
+        $apiAttributes = $reflection->getAttributes(API::class);
+
+        if ($apiAttributes === []) {
+            return;
+        }
+
+        $apiAttribute = $apiAttributes[0]->newInstance();
+
+        // Auto-detect soft deletes if not explicitly set
+        if (! $apiAttribute->isSoftDeletesExplicitlySet() && in_array(SoftDeletes::class, class_uses_recursive($modelClass), true)) {
+            $apiAttribute = $apiAttribute->withSoftDeletes(true);
+        }
+
+        $this->registerRoutesForModel($modelClass, $apiAttribute);
+    }
+
+    /**
      * Discover all models with the API attribute.
      */
     public function discoverModelsWithApiAttribute(): array

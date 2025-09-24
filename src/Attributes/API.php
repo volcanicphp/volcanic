@@ -25,7 +25,7 @@ class API
         public readonly array $searchable = [],
         public readonly ?bool $softDeletes = null,
         public readonly ?bool $scoutSearch = null,
-        public readonly array $rules = [],
+        public readonly array|string $rules = [],
     ) {}
 
     /**
@@ -133,9 +133,41 @@ class API
     /**
      * Get validation rules for the model.
      */
-    public function getValidationRules(): array
+    public function getValidationRules(): array|string
     {
         return $this->rules;
+    }
+
+    /**
+     * Get validation rules for a specific operation.
+     */
+    public function getValidationRulesForOperation(string $operation): array|string
+    {
+        if (is_string($this->rules)) {
+            return $this->rules;
+        }
+
+        if (is_array($this->rules)) {
+            if (isset($this->rules[$operation])) {
+                return $this->rules[$operation];
+            }
+
+            if ($this->rules !== [] && ! $this->hasOperationKeys($this->rules)) {
+                return $this->rules;
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Check if the rules array contains operation keys (store, update, etc.).
+     */
+    private function hasOperationKeys(array $rules): bool
+    {
+        $operationKeys = ['index', 'store', 'show', 'update', 'destroy', 'restore', 'forceDelete'];
+
+        return array_intersect(array_keys($rules), $operationKeys) !== [];
     }
 
     /**

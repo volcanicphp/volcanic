@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -212,10 +213,66 @@ class ApiController extends Controller
      */
     protected function validateRequest(Request $request, API $apiConfig, string $operation, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
     {
-        $rules = $apiConfig->getValidationRules();
-        $operationRules = $rules[$operation] ?? $rules['default'] ?? [];
+        $rules = $apiConfig->getValidationRulesForOperation($operation);
 
-        return Validator::make($request->all(), $operationRules);
+        if (is_string($rules)) {
+            return $this->validateWithFormRequest($request, $rules, $model);
+        }
+
+        if (is_array($rules)) {
+            return Validator::make($request->all(), $rules);
+        }
+
+        return Validator::make($request->all(), []);
+    }
+
+    /**
+     * Validate request using a FormRequest class.
+     */
+    protected function validateWithFormRequest(Request $request, string $formRequestClass, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
+    {
+        // Check if the FormRequest class exists
+        if (! class_exists($formRequestClass)) {
+            throw new LogicException("FormRequest class {$formRequestClass} does not exist.");
+        }
+
+        // Check if the class extends FormRequest
+        if (! is_subclass_of($formRequestClass, FormRequest::class)) {
+            throw new LogicException("Class {$formRequestClass} must extend ".FormRequest::class);
+        }
+
+        // Create an instance of the FormRequest
+        $formRequest = app($formRequestClass);
+
+        // Set the route parameters and model if available
+        if ($model instanceof Model) {
+            $formRequest->setRouteResolver(function () use ($request, $model) {
+                $route = $request->route();
+                $route->setParameter('model', $model);
+
+                return $route;
+            });
+        }
+
+        // Merge the current request data
+        $formRequest->merge($request->all());
+        $formRequest->setMethod($request->method());
+        $formRequest->headers = $request->headers;
+
+        // Get the validation rules from the FormRequest
+        $rules = $formRequest->rules();
+        $messages = method_exists($formRequest, 'messages') ? $formRequest->messages() : [];
+        $attributes = method_exists($formRequest, 'attributes') ? $formRequest->attributes() : [];
+
+        // Create and return the validator
+        $validator = Validator::make($request->all(), $rules, $messages, $attributes);
+
+        // Apply any custom validation logic if the FormRequest has a configure method
+        if (method_exists($formRequest, 'configure')) {
+            $formRequest->configure($validator);
+        }
+
+        return $validator;
     }
 
     /**
