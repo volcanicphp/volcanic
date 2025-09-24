@@ -34,8 +34,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Volcanic\\": "src/",
-            "Volcanic\\Database\\Factories\\": "database/factories/"
+            "Volcanic\\": "src/"
         }
     },
     "autoload-dev": {

@@ -140,15 +140,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        if ($apiConfig->softDeletes) {
-            $model->delete();
-        } else {
-            if (method_exists($model, 'forceDelete')) {
-                $model->forceDelete();
-            } else {
-                $model->delete();
-            }
-        }
+        $model->delete();
 
         return response()->json([
             'message' => 'Resource deleted successfully',
@@ -178,7 +170,6 @@ class ApiController extends Controller
         }
 
         if (method_exists($model, 'restore')) {
-            // @phpstan-ignore-next-line
             $model->restore();
         } else {
             return response()->json([
@@ -214,12 +205,7 @@ class ApiController extends Controller
             ], 404);
         }
 
-        if (method_exists($model, 'forceDelete')) {
-            // @phpstan-ignore-next-line
-            $model->forceDelete();
-        } else {
-            $model->delete();
-        }
+        $model->forceDelete();
 
         return response()->json([
             'message' => 'Resource permanently deleted',
@@ -236,7 +222,6 @@ class ApiController extends Controller
         if ($apiConfig->softDeletes) {
             $model = new $modelClass;
             if (method_exists($model, 'withTrashed')) {
-                // @phpstan-ignore-next-line
                 $query = $query->withTrashed();
             }
         }
@@ -253,7 +238,6 @@ class ApiController extends Controller
         $model = new $modelClass;
 
         if (method_exists($model, 'onlyTrashed')) {
-            // @phpstan-ignore-next-line
             $query = $query->onlyTrashed();
         } else {
             // If the model doesn't support soft deletes, return null
