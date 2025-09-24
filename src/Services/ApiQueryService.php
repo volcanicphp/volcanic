@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Volcanic\Services;
 
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Volcanic\Attributes\API;
+use Volcanic\Exceptions\InvalidFieldException;
 
 class ApiQueryService
 {
@@ -39,12 +41,10 @@ class ApiQueryService
             return;
         }
 
-        // Validate sort field is allowed
-        if (! in_array($sortBy, $apiConfig->sortable, true)) {
-            return;
+        if (! $this->isFieldAllowed($sortBy, $apiConfig->sortable, $query)) {
+            throw new InvalidFieldException($sortBy, 'sorting', $apiConfig->sortable);
         }
 
-        // Validate sort direction
         if (! in_array(strtolower((string) $sortDirection), ['asc', 'desc'], true)) {
             $sortDirection = 'asc';
         }
@@ -64,17 +64,14 @@ class ApiQueryService
                 continue;
             }
 
-            // Parse field and operator from filter key (e.g., "count:gte" or just "count")
             $parts = explode(':', (string) $filterKey, 2);
             $field = $parts[0];
-            $operator = $parts[1] ?? 'eq'; // Default to equals if no operator specified
+            $operator = $parts[1] ?? 'eq';
 
-            // Check if field is filterable
-            if (! in_array($field, $apiConfig->filterable, true)) {
-                continue;
+            if (! $this->isFieldAllowed($field, $apiConfig->filterable, $query)) {
+                throw new InvalidFieldException($field, 'filtering', $apiConfig->filterable);
             }
 
-            // Apply filter based on operator
             match ($operator) {
                 'eq' => $query->where($field, $value),
                 'not' => $query->where($field, '!=', $value),
@@ -85,7 +82,7 @@ class ApiQueryService
                 'in' => $this->applyInFilter($query, $field, $value),
                 'not_in' => $this->applyNotInFilter($query, $field, $value),
                 'between' => $this->applyBetweenFilter($query, $field, $value),
-                default => $query->where($field, $value), // Fallback to equals
+                default => $query->where($field, $value),
             };
         }
     }
@@ -163,17 +160,13 @@ class ApiQueryService
         $includeTrashed = $request->input('include_trashed');
         $onlyTrashed = $request->input('only_trashed');
 
-        // Check if the model uses soft deletes
         $model = $query->getModel();
 
         if ($onlyTrashed && method_exists($model, 'onlyTrashed')) {
-            // @phpstan-ignore-next-line
             $query->onlyTrashed();
         } elseif ($includeTrashed && method_exists($model, 'withTrashed')) {
-            // @phpstan-ignore-next-line
             $query->withTrashed();
         }
-        // Default behavior will exclude trashed records
     }
 
     /**
@@ -187,10 +180,8 @@ class ApiQueryService
             return;
         }
 
-        // Parse comma-separated relationships
         $relationships = is_string($with) ? explode(',', $with) : $with;
 
-        // Sanitize relationship names
         $relationships = array_map(fn ($relation): ?string => preg_replace(
             '/[^a-zA-Z0-9_.]/', '', (string) $relation
         ), $relationships);
@@ -209,17 +200,53 @@ class ApiQueryService
             return;
         }
 
-        // Parse comma-separated fields
         $fieldList = is_string($fields) ? explode(',', $fields) : $fields;
 
-        // Sanitize field names
         $fieldList = array_map(fn ($field): ?string => preg_replace('/[^a-zA-Z0-9_]/', '', (string) $field), $fieldList);
 
-        // Always include the primary key
         if (! in_array($query->getModel()->getKeyName(), $fieldList, true)) {
             array_unshift($fieldList, $query->getModel()->getKeyName());
         }
 
         $query->select($fieldList);
+    }
+
+    /**
+     * Check if a field is allowed based on the allowed fields array.
+     * Supports wildcard (*) to allow any field.
+     */
+    protected function isFieldAllowed(string $field, array $allowedFields, ?Builder $query = null): bool
+    {
+        if (in_array($field, $allowedFields, true)) {
+            return true;
+        }
+
+        if (in_array('*', $allowedFields, true)) {
+            return $query !== null ? $this->fieldExistsOnModel($field, $query) : true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a field exists on the model (either fillable or in table columns).
+     */
+    protected function fieldExistsOnModel(string $field, Builder $query): bool
+    {
+        $model = $query->getModel();
+
+        if (in_array($field, $model->getFillable(), true)) {
+            return true;
+        }
+
+        try {
+            $connection = $model->getConnection();
+            $table = $model->getTable();
+            $columns = $connection->getSchemaBuilder()->getColumnListing($table);
+
+            return in_array($field, $columns, true);
+        } catch (Exception $e) {
+            return true;
+        }
     }
 }

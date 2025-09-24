@@ -27,8 +27,7 @@ class API
         public readonly array $validation = [],
         public readonly array $hidden = [],
         public readonly array $visible = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Get the available CRUD operations.
@@ -37,7 +36,6 @@ class API
     {
         $defaultOperations = ['index', 'show', 'store', 'update', 'destroy'];
 
-        // Add soft delete operations if enabled
         if ($this->isSoftDeletesEnabled()) {
             $defaultOperations[] = 'restore';
             $defaultOperations[] = 'forceDelete';

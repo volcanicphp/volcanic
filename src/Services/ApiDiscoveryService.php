@@ -55,7 +55,6 @@ class ApiDiscoveryService
                     if ($reflectionAttribute) {
                         $apiAttribute = $reflectionAttribute->newInstance();
 
-                        // Automatically enable softDeletes if not explicitly set and the model uses the SoftDeletes trait
                         if (! $apiAttribute->isSoftDeletesExplicitlySet() && $this->usesSoftDeletes($reflection)) {
                             $apiAttribute = $apiAttribute->withSoftDeletes(true);
                         }
@@ -180,11 +179,9 @@ class ApiDiscoveryService
             return null;
         }
 
-        // Extract namespace
         preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches);
         $namespace = $namespaceMatches[1] ?? '';
 
-        // Extract class name
         preg_match('/class\s+(\w+)/', $content, $classMatches);
         $className = $classMatches[1] ?? '';
 
