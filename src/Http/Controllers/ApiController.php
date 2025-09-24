@@ -11,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiQueryService;
@@ -28,6 +29,8 @@ class ApiController extends Controller
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
+
+        Gate::authorize('viewAny', $modelClass);
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
@@ -53,6 +56,8 @@ class ApiController extends Controller
     {
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
+
+        Gate::authorize('create', $modelClass);
 
         $validator = $this->validateRequest($request, $apiConfig, 'store');
 
@@ -83,6 +88,8 @@ class ApiController extends Controller
             ], 404);
         }
 
+        Gate::authorize('view', $model);
+
         try {
             return $model->toResource();
         } catch (\LogicException) {
@@ -105,6 +112,8 @@ class ApiController extends Controller
                 'message' => 'Resource not found',
             ], 404);
         }
+
+        Gate::authorize('update', $model);
 
         $validator = $this->validateRequest($request, $apiConfig, 'update', $model);
 
@@ -135,6 +144,8 @@ class ApiController extends Controller
             ], 404);
         }
 
+        Gate::authorize('delete', $model);
+
         $model->delete();
 
         return new JsonResponse(status: 204);
@@ -161,6 +172,8 @@ class ApiController extends Controller
                 'message' => 'Trashed resource not found',
             ], 404);
         }
+
+        Gate::authorize('restore', $model);
 
         if (method_exists($model, 'restore')) {
             $model->restore();
@@ -198,6 +211,8 @@ class ApiController extends Controller
                 'message' => 'Resource not found',
             ], 404);
         }
+
+        Gate::authorize('forceDelete', $model);
 
         $model->forceDelete();
 

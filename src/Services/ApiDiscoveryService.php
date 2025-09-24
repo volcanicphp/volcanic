@@ -52,11 +52,11 @@ class ApiDiscoveryService
                     $reflectionAttribute = Arr::first($attributes);
 
                     if ($reflectionAttribute) {
+                        $apiAttribute = $reflectionAttribute->newInstance();
+
                         // Automatically enable softDeletes if not explicitly set and the model uses the SoftDeletes trait
                         if (! $apiAttribute->isSoftDeletesExplicitlySet() && $this->usesSoftDeletes($reflection)) {
                             $apiAttribute = $apiAttribute->withSoftDeletes(true);
-                        } else {
-                            $apiAttribute = $reflectionAttribute->newInstance();
                         }
 
                         $models[$className] = $apiAttribute;
