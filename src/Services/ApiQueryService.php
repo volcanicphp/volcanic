@@ -244,7 +244,7 @@ class ApiQueryService
             return false;
         }
 
-        $traits = class_uses_recursive(get_class($model));
+        $traits = class_uses_recursive($model::class);
 
         return in_array('Laravel\Scout\Searchable', $traits, true);
     }
@@ -267,7 +267,7 @@ class ApiQueryService
             }
 
             $query->whereIn($model->getKeyName(), $modelIds->toArray());
-        } catch (Exception $e) {
+        } catch (Exception) {
             $query->whereRaw('1 = 0');
         }
     }
@@ -283,7 +283,7 @@ class ApiQueryService
         }
 
         if (in_array('*', $allowedFields, true)) {
-            return $query !== null ? $this->fieldExistsOnModel($field, $query) : true;
+            return $query instanceof Builder ? $this->fieldExistsOnModel($field, $query) : true;
         }
 
         return false;
@@ -306,7 +306,7 @@ class ApiQueryService
             $columns = $connection->getSchemaBuilder()->getColumnListing($table);
 
             return in_array($field, $columns, true);
-        } catch (Exception $e) {
+        } catch (Exception) {
             return true;
         }
     }

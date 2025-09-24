@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Volcanic\Tests\Unit;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Override;
 use Volcanic\Attributes\API;
 use Volcanic\Exceptions\InvalidFieldException;
 use Volcanic\Services\ApiQueryService;
@@ -41,6 +43,7 @@ class WildcardValidationTest extends TestCase
 {
     private ApiQueryService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -55,7 +58,7 @@ class WildcardValidationTest extends TestCase
         // This should not throw an exception
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_wildcard_allows_fillable_fields_for_filtering(): void
@@ -66,7 +69,7 @@ class WildcardValidationTest extends TestCase
         // This should not throw an exception
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_restricted_fields_throw_exception_for_sorting(): void
@@ -99,7 +102,7 @@ class WildcardValidationTest extends TestCase
         // Should not throw exception because sortBy validation returns early when sortable is empty
         $query = $this->service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_explicitly_allowed_fields_work_with_wildcard(): void
@@ -110,6 +113,6 @@ class WildcardValidationTest extends TestCase
         // This should work
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 }

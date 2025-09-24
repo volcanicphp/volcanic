@@ -22,7 +22,7 @@ class InvalidFieldException extends Exception
             return "Field '{$field}' is not allowed for {$operation}. This API accepts any field due to wildcard (*) configuration, but '{$field}' may not exist on this model.";
         }
 
-        if (empty($allowedFields)) {
+        if ($allowedFields === []) {
             return "Field '{$field}' is not allowed for {$operation}. No fields are configured as allowed for this operation.";
         }
 

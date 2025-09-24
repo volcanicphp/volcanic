@@ -54,19 +54,20 @@ class User extends Model
 ```php
 #[API(
     sortable: ['*'],           // Any field can be sorted
-    filterable: ['*'],         // Any field can be filtered  
+    filterable: ['*'],         // Any field can be filtered
     searchable: ['name', 'content'],  // Scout search on specific fields
     scoutSearch: null          // Auto-detect Scout usage
 )]
 class Product extends Model
 {
     use Searchable;
-    
+
     protected $fillable = ['name', 'content', 'price', 'category'];
 }
 ```
 
 API Usage:
+
 ```bash
 # Scout search on name/content fields
 GET /api/products?search=smartphone
@@ -74,7 +75,7 @@ GET /api/products?search=smartphone
 # Wildcard filtering (validates field exists)
 GET /api/products?filter[price:gte]=100&filter[category]=electronics
 
-# Wildcard sorting (validates field exists) 
+# Wildcard sorting (validates field exists)
 GET /api/products?sort_by=price&sort_direction=desc
 
 # Error for invalid field
@@ -97,11 +98,13 @@ php artisan vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"
 ```
 
 With a driver like Algolia:
+
 ```bash
 composer require algolia/algoliasearch-client-php
 ```
 
 Then in `.env`:
+
 ```env
 SCOUT_DRIVER=algolia
 ALGOLIA_APP_ID=your_app_id

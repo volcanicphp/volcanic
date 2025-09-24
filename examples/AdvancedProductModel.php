@@ -32,20 +32,20 @@ use Volcanic\Attributes\API;
             'description' => 'sometimes|string',
             'price' => 'sometimes|numeric|min:0',
             'category_id' => 'sometimes|exists:categories,id',
-        ]
+        ],
     ]
 )]
 class Product extends Model
 {
-    use SoftDeletes, Searchable;  // Both traits auto-detected by Volcanic
+    use Searchable, SoftDeletes;  // Both traits auto-detected by Volcanic
 
     protected $fillable = [
         'name',
-        'description', 
+        'description',
         'price',
         'category_id',
         'tags',
-        'status'
+        'status',
     ];
 
     protected $casts = [

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Volcanic\Tests\Unit;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Override;
 use Volcanic\Attributes\API;
 use Volcanic\Services\ApiQueryService;
 use Volcanic\Tests\TestCase;
@@ -13,7 +16,7 @@ use Volcanic\Tests\TestCase;
 // Mock Scout Searchable trait
 trait MockSearchable
 {
-    public static function search(string $query)
+    public static function search(string $query): \Volcanic\Tests\Unit\MockSearchResults
     {
         // Return mock search results with some IDs
         return new MockSearchResults([1, 2, 3]);
@@ -23,9 +26,9 @@ trait MockSearchable
 // Mock search results class
 class MockSearchResults
 {
-    public function __construct(private array $keys = []) {}
+    public function __construct(private readonly array $keys = []) {}
 
-    public function keys()
+    public function keys(): Collection
     {
         return collect($this->keys);
     }
@@ -55,7 +58,7 @@ class ScoutEnabledTestModel extends Model
 
     protected $fillable = ['name', 'content'];
 
-    public static function search(string $query)
+    public static function search(string $query): \Volcanic\Tests\Unit\MockSearchResults
     {
         return new MockSearchResults([]);
     }
@@ -90,6 +93,7 @@ class ScoutSearchTest extends TestCase
 {
     private ApiQueryService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -103,7 +107,7 @@ class ScoutSearchTest extends TestCase
 
         $query = $this->service->buildQuery(ScoutTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_scout_search_is_used_when_explicitly_enabled(): void
@@ -113,7 +117,7 @@ class ScoutSearchTest extends TestCase
 
         $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_scout_search_is_not_used_when_explicitly_disabled(): void
@@ -123,7 +127,7 @@ class ScoutSearchTest extends TestCase
 
         $query = $this->service->buildQuery(ScoutDisabledTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_regular_search_is_used_when_scout_not_available(): void
@@ -133,7 +137,7 @@ class ScoutSearchTest extends TestCase
 
         $query = $this->service->buildQuery(RegularTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 
     public function test_api_attribute_scout_methods(): void
@@ -158,6 +162,6 @@ class ScoutSearchTest extends TestCase
 
         $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $query);
+        $this->assertInstanceOf(Builder::class, $query);
     }
 }
