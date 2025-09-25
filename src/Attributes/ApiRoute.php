@@ -7,7 +7,7 @@ namespace Volcanic\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class Route
+class ApiRoute
 {
     public function __construct(
         public readonly ?string $uri = null,
@@ -44,10 +44,18 @@ class Route
 
     /**
      * Get the middleware for this route.
+     * Always includes 'api' middleware automatically.
      */
     public function getMiddleware(): array
     {
-        return $this->middleware;
+        $middleware = $this->middleware;
+        
+        // Automatically add 'api' middleware if not already present
+        if (!in_array('api', $middleware, true)) {
+            array_unshift($middleware, 'api');
+        }
+        
+        return $middleware;
     }
 
     /**

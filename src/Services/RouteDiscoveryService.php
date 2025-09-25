@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route as LaravelRoute;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
-use Volcanic\Attributes\Route;
+use Volcanic\Attributes\ApiRoute;
 
 class RouteDiscoveryService
 {
@@ -39,7 +39,7 @@ class RouteDiscoveryService
     }
 
     /**
-     * Discover controllers with route attributes.
+     * Discover controllers with the ApiRoute attribute.
      */
     private function discoverControllersWithRouteAttributes(array $paths = []): array
     {
@@ -75,7 +75,7 @@ class RouteDiscoveryService
     }
 
     /**
-     * Get methods with Route attributes from a controller class.
+     * Get methods with the ApiRoute attribute from a controller class.
      */
     private function getMethodsWithRouteAttributes(string $controllerClass): array
     {
@@ -83,7 +83,7 @@ class RouteDiscoveryService
         $reflection = new ReflectionClass($controllerClass);
 
         foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            $attributes = $method->getAttributes(Route::class);
+            $attributes = $method->getAttributes(ApiRoute::class);
 
             if ($attributes !== []) {
                 $methods[$method->getName()] = [
@@ -110,7 +110,7 @@ class RouteDiscoveryService
     /**
      * Register a single route for a controller method.
      */
-    private function registerRouteForMethod(string $controllerClass, string $methodName, Route $attribute): void
+    private function registerRouteForMethod(string $controllerClass, string $methodName, ApiRoute $attribute): void
     {
         $uri = $this->buildUri($attribute, $controllerClass, $methodName);
 
@@ -147,7 +147,7 @@ class RouteDiscoveryService
     /**
      * Build the URI for the route.
      */
-    private function buildUri(Route $attribute, string $controllerClass, string $methodName): string
+    private function buildUri(ApiRoute $attribute, string $controllerClass, string $methodName): string
     {
         if ($attribute->getUri() !== null) {
             return $attribute->getUri();

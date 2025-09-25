@@ -169,8 +169,10 @@ class ApiQueryService
         $model = $query->getModel();
 
         if ($onlyTrashed && method_exists($model, 'onlyTrashed')) {
+            // @phpstan-ignore-next-line
             $query->onlyTrashed();
         } elseif ($includeTrashed && method_exists($model, 'withTrashed')) {
+            // @phpstan-ignore-next-line
             $query->withTrashed();
         }
     }
@@ -257,6 +259,7 @@ class ApiQueryService
         try {
             $model = $query->getModel();
 
+            // @phpstan-ignore-next-line
             $scoutResults = $model::search($search);
             $modelIds = $scoutResults->keys();
 

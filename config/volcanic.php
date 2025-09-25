@@ -21,7 +21,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | When enabled, Volcanic will automatically discover and register routes
-    | for controller methods that have the Route attribute. Set to false if
+    | for controller methods that have the ApiRoute attribute. Set to false if
     | you prefer to manually register routes.
     |
     */
@@ -65,7 +65,7 @@ return [
     | Controller Paths
     |--------------------------------------------------------------------------
     |
-    | Paths to scan for controllers with Route attributes on methods.
+    | Paths to scan for controllers with ApiRoute attributes on methods.
     | If empty, will default to app_path('Http/Controllers').
     |
     */

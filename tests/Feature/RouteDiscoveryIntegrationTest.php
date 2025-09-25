@@ -6,13 +6,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
-use Volcanic\Attributes\Route as RouteAttribute;
+use Volcanic\Attributes\ApiRoute;
 use Volcanic\Services\RouteDiscoveryService;
 
 // Simple test controller
 class SimpleTestController extends Controller
 {
-    #[RouteAttribute(
+    #[ApiRoute(
         methods: ['GET'],
         uri: '/test/simple',
         name: 'test.simple',
@@ -24,8 +24,8 @@ class SimpleTestController extends Controller
     }
 }
 
-describe('Route Discovery Integration', function () {
-    it('can register routes using RouteDiscoveryService', function () {
+describe('Route Discovery Integration', function (): void {
+    it('can register routes using RouteDiscoveryService', function (): void {
         // Register routes for our test controller
         $routeDiscovery = new RouteDiscoveryService;
         $routeDiscovery->registerControllerRoutes(SimpleTestController::class);
@@ -54,7 +54,7 @@ describe('Route Discovery Integration', function () {
         expect($route->middleware())->toContain('web');
     });
 
-    it('validates RouteDiscoveryService is registered as singleton', function () {
+    it('validates RouteDiscoveryService is registered as singleton', function (): void {
         expect(app()->bound(RouteDiscoveryService::class))->toBeTrue();
 
         $service1 = app(RouteDiscoveryService::class);

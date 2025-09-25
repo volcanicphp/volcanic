@@ -7,11 +7,11 @@ namespace Examples;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Volcanic\Attributes\Route;
+use Volcanic\Attributes\ApiRoute;
 
 class ProductController extends Controller
 {
-    #[Route(
+    #[ApiRoute(
         methods: ['GET'],
         uri: '/api/products',
         name: 'products.index',
@@ -31,7 +31,7 @@ class ProductController extends Controller
         ]);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['GET'],
         uri: '/api/products/{id}',
         name: 'products.show',
@@ -54,7 +54,7 @@ class ProductController extends Controller
         ]);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['POST'],
         uri: '/api/products',
         name: 'products.store',
@@ -84,7 +84,7 @@ class ProductController extends Controller
         ], 201);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['PUT', 'PATCH'],
         uri: '/api/products/{id}',
         name: 'products.update',
@@ -115,7 +115,7 @@ class ProductController extends Controller
         ]);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['DELETE'],
         uri: '/api/products/{id}',
         name: 'products.destroy',
@@ -132,7 +132,7 @@ class ProductController extends Controller
         ]);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['PATCH'],
         uri: '/api/products/{id}/restore',
         name: 'products.restore',
@@ -149,7 +149,7 @@ class ProductController extends Controller
         ]);
     }
 
-    #[Route(
+    #[ApiRoute(
         methods: ['DELETE'],
         uri: '/api/products/{id}/force',
         name: 'products.forceDelete',
@@ -167,7 +167,7 @@ class ProductController extends Controller
     }
 
     // Example without specifying URI - will auto-generate
-    #[Route(
+    #[ApiRoute(
         methods: ['GET'],
         middleware: ['auth:api']
     )]
@@ -184,7 +184,7 @@ class ProductController extends Controller
     }
 
     // Example with domain constraint
-    #[Route(
+    #[ApiRoute(
         methods: ['GET'],
         uri: '/api/admin/products/stats',
         name: 'admin.products.stats',

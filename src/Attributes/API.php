@@ -153,14 +153,12 @@ class API
             return $this->rules;
         }
 
-        if (is_array($this->rules)) {
-            if (isset($this->rules[$operation])) {
-                return $this->rules[$operation];
-            }
+        if (isset($this->rules[$operation])) {
+            return $this->rules[$operation];
+        }
 
-            if ($this->rules !== [] && ! $this->hasOperationKeys($this->rules)) {
-                return $this->rules;
-            }
+        if ($this->rules !== [] && ! $this->hasOperationKeys($this->rules)) {
+            return $this->rules;
         }
 
         return [];
