@@ -6,6 +6,7 @@ namespace Volcanic\Http\Controllers;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,7 +75,7 @@ class ApiController extends Controller
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        $model = $this->findModel($modelClass, $id, $apiConfig);
+        $model = $this->findModel($modelClass, $id, $apiConfig, $request);
 
         $this->authorizeRequest('view', $model);
 
@@ -135,11 +136,11 @@ class ApiController extends Controller
 
         if (! $apiConfig->isSoftDeletesEnabled()) {
             return new JsonResponse([
-                'message' => 'Soft deletes are not enabled for this resource',
+                'message' => __('Soft deletes are not enabled for this resource'),
             ], 400);
         }
 
-        $model = $this->findTrashedModel($modelClass, $id);
+        $model = $this->findTrashedModel($modelClass, $id, $request);
 
         $this->authorizeRequest('restore', $model);
 
@@ -147,7 +148,7 @@ class ApiController extends Controller
             $model->restore();
         } else {
             return new JsonResponse([
-                'message' => 'Model does not support soft deletes',
+                'message' => __('Model does not support soft deletes'),
             ], 400);
         }
 
@@ -168,11 +169,11 @@ class ApiController extends Controller
 
         if (! $apiConfig->isSoftDeletesEnabled()) {
             return new JsonResponse([
-                'message' => 'Soft deletes are not enabled for this resource',
+                'message' => __('Soft deletes are not enabled for this resource'),
             ], 400);
         }
 
-        $model = $this->findModel($modelClass, $id, $apiConfig);
+        $model = $this->findModel($modelClass, $id, $apiConfig, $request);
 
         $this->authorizeRequest('forceDelete', $model);
 
@@ -184,7 +185,7 @@ class ApiController extends Controller
     /**
      * Find a model instance.
      */
-    protected function findModel(string $modelClass, string $id, API $apiConfig): ?Model
+    protected function findModel(string $modelClass, string $id, API $apiConfig, Request $request): Model
     {
         $query = $modelClass::query();
 
@@ -192,19 +193,25 @@ class ApiController extends Controller
             $query = $query->withTrashed();
         }
 
+        // Force JSON response
+        $request->headers->set('Accept', 'application/json');
+
         return $query->findOrFail($id);
     }
 
     /**
      * Find a trashed model instance (soft deleted).
      */
-    protected function findTrashedModel(string $modelClass, string $id): ?Model
+    protected function findTrashedModel(string $modelClass, string $id, Request $request): Model
     {
         $query = $modelClass::query();
 
         if (method_exists($modelClass, 'onlyTrashed')) {
             $query = $query->onlyTrashed();
         }
+
+        // Force JSON response
+        $request->headers->set('Accept', 'application/json');
 
         return $query->findOrFail($id);
     }
