@@ -162,9 +162,9 @@ class ApiRouteDiscoveryService
      */
     private function generateDefaultUri(string $controllerClass, string $methodName): string
     {
-        $controllerName = Str::kebab(
-            Str::replaceLast('Controller', '', class_basename($controllerClass))
-        );
+        $resourceName = Str::replaceLast('Controller', '', class_basename($controllerClass));
+
+        $controllerName = Str::kebab(Str::plural($resourceName));
 
         return $controllerName.'/'.Str::kebab($methodName);
     }
