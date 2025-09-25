@@ -49,12 +49,12 @@ class ApiRoute
     public function getMiddleware(): array
     {
         $middleware = $this->middleware;
-        
+
         // Automatically add 'api' middleware if not already present
-        if (!in_array('api', $middleware, true)) {
+        if (! in_array('api', $middleware, true)) {
             array_unshift($middleware, 'api');
         }
-        
+
         return $middleware;
     }
 

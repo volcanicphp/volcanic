@@ -18,12 +18,12 @@ describe('ApiRoute Attribute', function (): void {
 
     it('can be instantiated with custom parameters', function (): void {
         $route = new ApiRoute(
-            methods: ['POST', 'PUT'],
             uri: '/api/products/{id}',
-            name: 'products.update',
+            methods: ['POST', 'PUT'],
             middleware: ['auth:api', 'throttle:60,1'],
             where: ['id' => '[0-9]+'],
-            domain: 'api.example.com'
+            domain: 'api.example.com',
+            name: 'products.update'
         );
 
         expect($route->getMethods())->toBe(['POST', 'PUT']);
@@ -77,8 +77,8 @@ describe('ApiRoute Attribute', function (): void {
     it('handles null values correctly', function (): void {
         $route = new ApiRoute(
             uri: null,
-            name: null,
-            domain: null
+            domain: null,
+            name: null
         );
 
         expect($route->getUri())->toBeNull();
