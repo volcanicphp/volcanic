@@ -7,11 +7,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\VolcanicServiceProvider;
 
 // Test model with API attribute
-#[API(prefix: 'api', name: 'test-products')]
+#[ApiResource(prefix: 'api', name: 'test-products')]
 class TestProduct extends Model
 {
     protected $table = 'test_products';

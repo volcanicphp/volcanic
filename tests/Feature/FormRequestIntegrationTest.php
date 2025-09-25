@@ -9,7 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Override;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
 
@@ -74,7 +74,7 @@ class ProductUpdateFormRequest extends FormRequest
 }
 
 // Test models
-#[API(
+#[ApiResource(
     prefix: 'api/test',
     name: 'form-request-products-single',
     rules: ProductFormRequest::class
@@ -86,7 +86,7 @@ class FormRequestProductSingle extends Model
     protected $fillable = ['name', 'price', 'category'];
 }
 
-#[API(
+#[ApiResource(
     prefix: 'api/test',
     name: 'form-request-products-per-operation',
     rules: [
@@ -101,7 +101,7 @@ class FormRequestProductPerOperation extends Model
     protected $fillable = ['name', 'price', 'category'];
 }
 
-#[API(
+#[ApiResource(
     prefix: 'api/test',
     name: 'form-request-products-mixed',
     rules: [

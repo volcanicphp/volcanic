@@ -10,7 +10,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use ReflectionClass;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Http\Controllers\ApiController;
 
 class ApiDiscoveryService
@@ -33,7 +33,7 @@ class ApiDiscoveryService
     public function registerModelRoutes(string $modelClass): void
     {
         $reflection = new ReflectionClass($modelClass);
-        $apiAttributes = $reflection->getAttributes(API::class);
+        $apiAttributes = $reflection->getAttributes(ApiResource::class);
 
         if ($apiAttributes === []) {
             return;
@@ -70,7 +70,7 @@ class ApiDiscoveryService
                         continue;
                     }
 
-                    $attributes = $reflection->getAttributes(API::class);
+                    $attributes = $reflection->getAttributes(ApiResource::class);
 
                     $reflectionAttribute = Arr::first($attributes);
 
@@ -93,7 +93,7 @@ class ApiDiscoveryService
     /**
      * Register routes for a specific model.
      */
-    protected function registerRoutesForModel(string $modelClass, API $apiAttribute): void
+    protected function registerRoutesForModel(string $modelClass, ApiResource $apiAttribute): void
     {
         $resourceName = $this->getResourceName($modelClass, $apiAttribute);
         $prefix = $apiAttribute->getPrefix();
@@ -168,7 +168,7 @@ class ApiDiscoveryService
     /**
      * Get the resource name for the model.
      */
-    protected function getResourceName(string $modelClass, API $apiAttribute): string
+    protected function getResourceName(string $modelClass, ApiResource $apiAttribute): string
     {
         if ($apiAttribute->getName()) {
             return $apiAttribute->getName();

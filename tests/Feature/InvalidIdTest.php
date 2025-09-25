@@ -10,12 +10,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Override;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Test model for invalid ID testing (auto-increment)
-#[API(
+#[ApiResource(
     prefix: 'test-api',
     name: 'products'
 )]
@@ -27,7 +27,7 @@ class Product extends Model
 }
 
 // Test model with UUID primary key
-#[API(
+#[ApiResource(
     prefix: 'test-api',
     name: 'uuid-products'
 )]

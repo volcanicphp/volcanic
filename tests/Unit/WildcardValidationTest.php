@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Override;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Exceptions\InvalidFieldException;
 use Volcanic\Services\ApiQueryService;
 use Volcanic\Tests\TestCase;
 
 // Test model with wildcard support
-#[API(
+#[ApiResource(
     sortable: ['*'],
     filterable: ['*'],
     searchable: ['name', 'description'],
@@ -27,7 +27,7 @@ class WildcardTestModel extends Model
 }
 
 // Test model with specific fields
-#[API(
+#[ApiResource(
     sortable: ['name', 'created_at'],
     filterable: ['status'],
     searchable: ['name'],
@@ -53,7 +53,7 @@ class WildcardValidationTest extends TestCase
     public function test_wildcard_allows_fillable_fields_for_sorting(): void
     {
         $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new API(sortable: ['*']);
+        $apiConfig = new ApiResource(sortable: ['*']);
 
         // This should not throw an exception
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
@@ -64,7 +64,7 @@ class WildcardValidationTest extends TestCase
     public function test_wildcard_allows_fillable_fields_for_filtering(): void
     {
         $request = new Request(['filter' => ['name' => 'test']]);
-        $apiConfig = new API(filterable: ['*']);
+        $apiConfig = new ApiResource(filterable: ['*']);
 
         // This should not throw an exception
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
@@ -75,7 +75,7 @@ class WildcardValidationTest extends TestCase
     public function test_restricted_fields_throw_exception_for_sorting(): void
     {
         $request = new Request(['sort_by' => 'description']); // Not in sortable array
-        $apiConfig = new API(sortable: ['name', 'created_at']);
+        $apiConfig = new ApiResource(sortable: ['name', 'created_at']);
 
         $this->expectException(InvalidFieldException::class);
         $this->expectExceptionMessage("Field 'description' is not allowed for sorting. Allowed fields are: name, created_at");
@@ -86,7 +86,7 @@ class WildcardValidationTest extends TestCase
     public function test_restricted_fields_throw_exception_for_filtering(): void
     {
         $request = new Request(['filter' => ['name' => 'test']]); // Not in filterable array
-        $apiConfig = new API(filterable: ['status']);
+        $apiConfig = new ApiResource(filterable: ['status']);
 
         $this->expectException(InvalidFieldException::class);
         $this->expectExceptionMessage("Field 'name' is not allowed for filtering. Allowed fields are: status");
@@ -97,7 +97,7 @@ class WildcardValidationTest extends TestCase
     public function test_empty_allowed_fields_throw_exception(): void
     {
         $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new API(sortable: []);
+        $apiConfig = new ApiResource(sortable: []);
 
         // Should not throw exception because sortBy validation returns early when sortable is empty
         $query = $this->service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
@@ -108,7 +108,7 @@ class WildcardValidationTest extends TestCase
     public function test_explicitly_allowed_fields_work_with_wildcard(): void
     {
         $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new API(sortable: ['name', '*']); // Both explicit and wildcard
+        $apiConfig = new ApiResource(sortable: ['name', '*']); // Both explicit and wildcard
 
         // This should work
         $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);

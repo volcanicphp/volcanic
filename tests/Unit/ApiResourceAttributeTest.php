@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Volcanic\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 
 class ApiAttributeTest extends TestCase
 {
     public function test_api_attribute_can_be_instantiated(): void
     {
-        $api = new API;
+        $api = new ApiResource;
 
-        $this->assertInstanceOf(API::class, $api);
+        $this->assertInstanceOf(ApiResource::class, $api);
         $this->assertEquals('api', $api->getPrefix());
         $this->assertTrue($api->paginate);
     }
 
     public function test_api_attribute_with_custom_configuration(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             prefix: 'v1',
             name: 'custom-users',
             only: ['index', 'show'],
@@ -39,7 +39,7 @@ class ApiAttributeTest extends TestCase
 
     public function test_api_attribute_operations_with_except(): void
     {
-        $api = new API(except: ['destroy']);
+        $api = new ApiResource(except: ['destroy']);
 
         $expectedOperations = ['index', 'show', 'store', 'update'];
         $this->assertEquals($expectedOperations, $api->getOperations());
@@ -47,7 +47,7 @@ class ApiAttributeTest extends TestCase
 
     public function test_api_attribute_allows_operation(): void
     {
-        $api = new API(only: ['index', 'show']);
+        $api = new ApiResource(only: ['index', 'show']);
 
         $this->assertTrue($api->allowsOperation('index'));
         $this->assertTrue($api->allowsOperation('show'));
@@ -57,7 +57,7 @@ class ApiAttributeTest extends TestCase
 
     public function test_api_attribute_query_features(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             sortable: ['name', 'created_at'],
             filterable: ['status', 'category'],
             searchable: ['name', 'description']
@@ -73,17 +73,17 @@ class ApiAttributeTest extends TestCase
     public function test_api_attribute_scout_search_configuration(): void
     {
         // Test explicitly enabled
-        $api = new API(scoutSearch: true);
+        $api = new ApiResource(scoutSearch: true);
         $this->assertTrue($api->isScoutSearchEnabled());
         $this->assertTrue($api->isScoutSearchExplicitlySet());
 
         // Test explicitly disabled
-        $api = new API(scoutSearch: false);
+        $api = new ApiResource(scoutSearch: false);
         $this->assertFalse($api->isScoutSearchEnabled());
         $this->assertTrue($api->isScoutSearchExplicitlySet());
 
         // Test default (not set)
-        $api = new API;
+        $api = new ApiResource;
         $this->assertFalse($api->isScoutSearchEnabled());
         $this->assertFalse($api->isScoutSearchExplicitlySet());
     }

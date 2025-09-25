@@ -7,12 +7,12 @@ namespace Volcanic\Tests\Feature;
 use Illuminate\Database\Eloquent\Model;
 use Override;
 use ReflectionClass;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Mock model for testing
-#[API(
+#[ApiResource(
     prefix: 'test',
     name: 'test-items',
     sortable: ['name'],
@@ -55,7 +55,7 @@ class ApiIntegrationTest extends TestCase
     public function test_api_attribute_configuration_is_applied_correctly(): void
     {
         $reflection = new ReflectionClass(TestModel::class);
-        $attributes = $reflection->getAttributes(API::class);
+        $attributes = $reflection->getAttributes(ApiResource::class);
 
         $this->assertNotEmpty($attributes);
 
@@ -74,23 +74,23 @@ class ApiIntegrationTest extends TestCase
 
     public function test_api_operations_can_be_filtered(): void
     {
-        $apiWithOnly = new API(only: ['index', 'show']);
+        $apiWithOnly = new ApiResource(only: ['index', 'show']);
         $this->assertEquals(['index', 'show'], $apiWithOnly->getOperations());
 
-        $apiWithExcept = new API(except: ['destroy']);
+        $apiWithExcept = new ApiResource(except: ['destroy']);
         $expectedOperations = ['index', 'show', 'store', 'update'];
         $this->assertEquals($expectedOperations, $apiWithExcept->getOperations());
     }
 
     public function test_pagination_settings_are_configured_correctly(): void
     {
-        $apiWithPagination = new API(paginate: true, perPage: 25);
+        $apiWithPagination = new ApiResource(paginate: true, perPage: 25);
         $paginationSettings = $apiWithPagination->getPaginationSettings();
 
         $this->assertTrue($paginationSettings['enabled']);
         $this->assertEquals(25, $paginationSettings['per_page']);
 
-        $apiWithoutPagination = new API(paginate: false);
+        $apiWithoutPagination = new ApiResource(paginate: false);
         $paginationSettings = $apiWithoutPagination->getPaginationSettings();
 
         $this->assertFalse($paginationSettings['enabled']);
@@ -98,7 +98,7 @@ class ApiIntegrationTest extends TestCase
 
     public function test_query_features_are_configured_correctly(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             sortable: ['name', 'created_at'],
             filterable: ['status', 'category'],
             searchable: ['name', 'content']

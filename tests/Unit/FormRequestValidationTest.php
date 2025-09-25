@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Override;
 use ReflectionClass;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Tests\TestCase;
 
 // Test FormRequest for validation
@@ -71,7 +71,7 @@ class TestProductUpdateRequest extends FormRequest
 }
 
 // Test models with different validation configurations
-#[API(rules: TestProductRequest::class)]
+#[ApiResource(rules: TestProductRequest::class)]
 class ProductWithSingleFormRequest extends Model
 {
     protected $table = 'products';
@@ -79,7 +79,7 @@ class ProductWithSingleFormRequest extends Model
     protected $fillable = ['name', 'price'];
 }
 
-#[API(rules: [
+#[ApiResource(rules: [
     'store' => TestProductStoreRequest::class,
     'update' => TestProductUpdateRequest::class,
 ])]
@@ -90,7 +90,7 @@ class ProductWithPerOperationFormRequests extends Model
     protected $fillable = ['name', 'price'];
 }
 
-#[API(rules: [
+#[ApiResource(rules: [
     'store' => TestProductStoreRequest::class,
     'update' => [
         'name' => 'sometimes|string|max:255',
@@ -104,7 +104,7 @@ class ProductWithMixedValidation extends Model
     protected $fillable = ['name', 'price'];
 }
 
-#[API(rules: [
+#[ApiResource(rules: [
     'store' => [
         'name' => 'required|string|max:255',
         'price' => 'required|numeric|min:0',
@@ -132,7 +132,7 @@ class FormRequestValidationTest extends TestCase
     public function test_api_attribute_accepts_string_form_request(): void
     {
         $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $rules = $apiAttribute->getValidationRules();
 
@@ -143,7 +143,7 @@ class FormRequestValidationTest extends TestCase
     public function test_api_attribute_accepts_per_operation_form_requests(): void
     {
         $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $rules = $apiAttribute->getValidationRules();
 
@@ -155,7 +155,7 @@ class FormRequestValidationTest extends TestCase
     public function test_get_validation_rules_for_operation_with_string_rules(): void
     {
         $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $storeRules = $apiAttribute->getValidationRulesForOperation('store');
         $updateRules = $apiAttribute->getValidationRulesForOperation('update');
@@ -167,7 +167,7 @@ class FormRequestValidationTest extends TestCase
     public function test_get_validation_rules_for_operation_with_per_operation_rules(): void
     {
         $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $storeRules = $apiAttribute->getValidationRulesForOperation('store');
         $updateRules = $apiAttribute->getValidationRulesForOperation('update');
@@ -179,7 +179,7 @@ class FormRequestValidationTest extends TestCase
     public function test_get_validation_rules_for_operation_with_mixed_validation(): void
     {
         $reflection = new ReflectionClass(ProductWithMixedValidation::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $storeRules = $apiAttribute->getValidationRulesForOperation('store');
         $updateRules = $apiAttribute->getValidationRulesForOperation('update');
@@ -192,7 +192,7 @@ class FormRequestValidationTest extends TestCase
     public function test_get_validation_rules_for_operation_with_traditional_array_rules(): void
     {
         $reflection = new ReflectionClass(ProductWithArrayRules::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $storeRules = $apiAttribute->getValidationRulesForOperation('store');
         $updateRules = $apiAttribute->getValidationRulesForOperation('update');
@@ -205,7 +205,7 @@ class FormRequestValidationTest extends TestCase
 
     public function test_get_validation_rules_for_operation_with_no_rules(): void
     {
-        $apiAttribute = new API;
+        $apiAttribute = new ApiResource;
 
         $storeRules = $apiAttribute->getValidationRulesForOperation('store');
         $updateRules = $apiAttribute->getValidationRulesForOperation('update');
@@ -217,7 +217,7 @@ class FormRequestValidationTest extends TestCase
     public function test_get_validation_rules_for_operation_with_non_existent_operation(): void
     {
         $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(API::class)[0]->newInstance();
+        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
         $rules = $apiAttribute->getValidationRulesForOperation('nonexistent');
 
@@ -227,7 +227,7 @@ class FormRequestValidationTest extends TestCase
     public function test_backward_compatibility_with_simple_array_rules(): void
     {
         // Test that simple arrays without operation keys still work
-        $apiAttribute = new API(rules: [
+        $apiAttribute = new ApiResource(rules: [
             'name' => 'required|string',
             'price' => 'required|numeric',
         ]);

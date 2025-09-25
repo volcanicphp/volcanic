@@ -10,10 +10,10 @@ use App\Http\Requests\ProductUpdateRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 
 /**
- * Advanced Product Model demonstrating all validation approaches with the Volcanic API attribute.
+ * Advanced Product Model demonstrating all validation approaches with the Volcanic ApiResource attribute.
  *
  * This example shows how you can configure validation in several ways:
  *
@@ -38,7 +38,7 @@ use Volcanic\Attributes\API;
  *        'update' => ['name' => 'sometimes|string|max:255'],
  *    ]
  */
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products',
     sortable: ['*'],           // Allow sorting by any field (with validation)

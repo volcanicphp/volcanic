@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Volcanic\Tests\Unit;
 
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Tests\TestCase;
 
 class SoftDeleteApiTest extends TestCase
 {
     public function test_api_attribute_includes_soft_delete_operations_when_enabled(): void
     {
-        $apiWithSoftDeletes = new API(softDeletes: true);
+        $apiWithSoftDeletes = new ApiResource(softDeletes: true);
 
         $operations = $apiWithSoftDeletes->getOperations();
 
@@ -29,7 +29,7 @@ class SoftDeleteApiTest extends TestCase
 
     public function test_api_attribute_excludes_soft_delete_operations_when_disabled(): void
     {
-        $apiWithoutSoftDeletes = new API(softDeletes: false);
+        $apiWithoutSoftDeletes = new ApiResource(softDeletes: false);
 
         $operations = $apiWithoutSoftDeletes->getOperations();
 
@@ -44,7 +44,7 @@ class SoftDeleteApiTest extends TestCase
 
     public function test_api_attribute_respects_only_filter_with_soft_deletes(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             only: ['index', 'restore'],
             softDeletes: true
         );
@@ -59,7 +59,7 @@ class SoftDeleteApiTest extends TestCase
 
     public function test_api_attribute_respects_except_filter_with_soft_deletes(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             except: ['forceDelete', 'destroy'],
             softDeletes: true
         );
@@ -75,7 +75,7 @@ class SoftDeleteApiTest extends TestCase
 
     public function test_allows_operation_works_with_soft_delete_operations(): void
     {
-        $api = new API(
+        $api = new ApiResource(
             only: ['restore', 'forceDelete'],
             softDeletes: true
         );

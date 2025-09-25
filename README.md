@@ -13,7 +13,7 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/volcanic/volcanic/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/volcanic/volcanic/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/volcanic/volcanic.svg?style=flat-square)](https://packagist.org/packages/volcanic/volcanic)
 
-Volcanic is a Laravel package that provides a powerful, attribute-based approach to creating RESTful APIs. Simply add the `#[API]` attribute to your Eloquent models and get full CRUD operations automatically, with advanced features like filtering, sorting, searching, pagination, and validation.
+Volcanic is a Laravel package that provides a powerful, attribute-based approach to creating RESTful APIs. Simply add the `#[ApiResource]` attribute to your Eloquent models and get full CRUD operations automatically, with advanced features like filtering, sorting, searching, pagination, and validation.
 
 ## Features
 
@@ -57,15 +57,15 @@ php artisan vendor:publish --tag="volcanic-views"
 
 ### Basic Usage
 
-Add the `#[API]` attribute to any Eloquent model to automatically expose CRUD operations:
+Add the `#[ApiResource]` attribute to any Eloquent model to automatically expose CRUD operations:
 
 ```php
 <?php
 
 use Illuminate\Database\Eloquent\Model;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 
-#[API]
+#[ApiResource]
 class User extends Model
 {
     protected $fillable = ['name', 'email'];
@@ -83,7 +83,7 @@ This automatically creates these endpoints:
 ### Advanced Configuration
 
 ```php
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'customers',
     only: ['index', 'show', 'store'],

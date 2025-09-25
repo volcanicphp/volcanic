@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Override;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiQueryService;
 use Volcanic\Tests\TestCase;
 
@@ -35,7 +35,7 @@ class MockSearchResults
 }
 
 // Test model with Scout
-#[API(
+#[ApiResource(
     searchable: ['name', 'content']
 )]
 class ScoutTestModel extends Model
@@ -48,7 +48,7 @@ class ScoutTestModel extends Model
 }
 
 // Test model with Scout explicitly enabled
-#[API(
+#[ApiResource(
     searchable: ['name'],
     scoutSearch: true
 )]
@@ -65,7 +65,7 @@ class ScoutEnabledTestModel extends Model
 }
 
 // Test model with Scout explicitly disabled
-#[API(
+#[ApiResource(
     searchable: ['name'],
     scoutSearch: false
 )]
@@ -79,7 +79,7 @@ class ScoutDisabledTestModel extends Model
 }
 
 // Test model without Scout trait
-#[API(
+#[ApiResource(
     searchable: ['name']
 )]
 class RegularTestModel extends Model
@@ -103,7 +103,7 @@ class ScoutSearchTest extends TestCase
     public function test_scout_search_is_auto_detected_when_trait_is_present(): void
     {
         $request = new Request(['search' => 'test query']);
-        $apiConfig = new API(searchable: ['name', 'content']);
+        $apiConfig = new ApiResource(searchable: ['name', 'content']);
 
         $query = $this->service->buildQuery(ScoutTestModel::class, $apiConfig, $request);
 
@@ -113,7 +113,7 @@ class ScoutSearchTest extends TestCase
     public function test_scout_search_is_used_when_explicitly_enabled(): void
     {
         $request = new Request(['search' => 'test query']);
-        $apiConfig = new API(searchable: ['name'], scoutSearch: true);
+        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
 
         $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 
@@ -123,7 +123,7 @@ class ScoutSearchTest extends TestCase
     public function test_scout_search_is_not_used_when_explicitly_disabled(): void
     {
         $request = new Request(['search' => 'test query']);
-        $apiConfig = new API(searchable: ['name'], scoutSearch: false);
+        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: false);
 
         $query = $this->service->buildQuery(ScoutDisabledTestModel::class, $apiConfig, $request);
 
@@ -133,7 +133,7 @@ class ScoutSearchTest extends TestCase
     public function test_regular_search_is_used_when_scout_not_available(): void
     {
         $request = new Request(['search' => 'test query']);
-        $apiConfig = new API(searchable: ['name']);
+        $apiConfig = new ApiResource(searchable: ['name']);
 
         $query = $this->service->buildQuery(RegularTestModel::class, $apiConfig, $request);
 
@@ -142,15 +142,15 @@ class ScoutSearchTest extends TestCase
 
     public function test_api_attribute_scout_methods(): void
     {
-        $api = new API(scoutSearch: true);
+        $api = new ApiResource(scoutSearch: true);
         $this->assertTrue($api->isScoutSearchEnabled());
         $this->assertTrue($api->isScoutSearchExplicitlySet());
 
-        $api = new API(scoutSearch: false);
+        $api = new ApiResource(scoutSearch: false);
         $this->assertFalse($api->isScoutSearchEnabled());
         $this->assertTrue($api->isScoutSearchExplicitlySet());
 
-        $api = new API;
+        $api = new ApiResource;
         $this->assertFalse($api->isScoutSearchEnabled());
         $this->assertFalse($api->isScoutSearchExplicitlySet());
     }
@@ -158,7 +158,7 @@ class ScoutSearchTest extends TestCase
     public function test_scout_search_handles_empty_results(): void
     {
         $request = new Request(['search' => 'no results']);
-        $apiConfig = new API(searchable: ['name'], scoutSearch: true);
+        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
 
         $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 

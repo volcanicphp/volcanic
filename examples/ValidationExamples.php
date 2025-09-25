@@ -10,10 +10,10 @@ use App\Http\Requests\ProductUpdateRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 
 /**
- * This example shows different ways to configure validation rules in the API attribute:
+ * This example shows different ways to configure validation rules in the ApiResource attribute:
  *
  * 1. Single FormRequest for all operations
  * 2. Per-operation FormRequest classes
@@ -22,7 +22,7 @@ use Volcanic\Attributes\API;
  */
 
 // Example 1: Single FormRequest for both create and update
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products-single-request',
     rules: ProductRequest::class  // Applies to both store and update
@@ -44,7 +44,7 @@ class ProductWithSingleRequest extends Model
 }
 
 // Example 2: Per-operation FormRequest classes
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products-per-operation',
     rules: [
@@ -69,7 +69,7 @@ class ProductWithPerOperationRequests extends Model
 }
 
 // Example 3: Mixed FormRequest and array rules
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products-mixed',
     rules: [
@@ -100,7 +100,7 @@ class ProductWithMixedValidation extends Model
 }
 
 // Example 4: Traditional array rules (backward compatibility maintained)
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products-traditional',
     sortable: ['*'],
@@ -160,7 +160,7 @@ class ProductWithTraditionalValidation extends Model
 }
 
 // Example 5: No validation (empty rules)
-#[API(
+#[ApiResource(
     prefix: 'v1',
     name: 'products-no-validation'
     // No rules property = no validation

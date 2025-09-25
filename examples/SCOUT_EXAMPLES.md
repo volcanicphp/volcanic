@@ -7,7 +7,7 @@ This document shows practical examples of using Laravel Scout with Volcanic.
 When you have a model with the `Searchable` trait:
 
 ```php
-#[API(searchable: ['name', 'content'])]
+#[ApiResource(searchable: ['name', 'content'])]
 class Article extends Model
 {
     use Searchable;
@@ -29,7 +29,7 @@ GET /api/articles?search=php
 
 ```php
 // Force enable Scout (useful for testing or specific requirements)
-#[API(
+#[ApiResource(
     searchable: ['title', 'body'],
     scoutSearch: true  // Always use Scout, even without Searchable trait
 )]
@@ -39,7 +39,7 @@ class BlogPost extends Model
 }
 
 // Force disable Scout (useful when you want database search instead)
-#[API(
+#[ApiResource(
     searchable: ['name', 'email'],
     scoutSearch: false  // Never use Scout, always use database LIKE
 )]
@@ -52,7 +52,7 @@ class User extends Model
 ## Combined with Wildcard Fields
 
 ```php
-#[API(
+#[ApiResource(
     sortable: ['*'],           // Any field can be sorted
     filterable: ['*'],         // Any field can be filtered
     searchable: ['name', 'content'],  // Scout search on specific fields

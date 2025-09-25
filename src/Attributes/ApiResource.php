@@ -8,7 +8,7 @@ use Attribute;
 use Illuminate\Support\Arr;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class API
+class ApiResource
 {
     public function __construct(
         public readonly ?string $prefix = null,

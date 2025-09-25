@@ -8,19 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 use ReflectionClass;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Mock model without SoftDeletes
-#[API(prefix: 'test')]
+#[ApiResource(prefix: 'test')]
 class RegularModel extends Model
 {
     protected $table = 'regular_models';
 }
 
 // Mock model with SoftDeletes
-#[API(prefix: 'test')]
+#[ApiResource(prefix: 'test')]
 class SoftDeleteModel extends Model
 {
     use SoftDeletes;
@@ -29,7 +29,7 @@ class SoftDeleteModel extends Model
 }
 
 // Mock model with SoftDeletes explicitly disabled in API attribute
-#[API(prefix: 'test', softDeletes: false)]
+#[ApiResource(prefix: 'test', softDeletes: false)]
 class ExplicitlyDisabledSoftDeleteModel extends Model
 {
     use SoftDeletes;
@@ -62,7 +62,7 @@ class SoftDeleteDetectionTest extends TestCase
     public function test_api_attribute_with_soft_deletes_creates_correct_operations(): void
     {
         $reflection = new ReflectionClass(SoftDeleteModel::class);
-        $attributes = $reflection->getAttributes(API::class);
+        $attributes = $reflection->getAttributes(ApiResource::class);
         $apiAttribute = $attributes[0]->newInstance();
 
         // Simulate the automatic soft deletes detection
@@ -78,7 +78,7 @@ class SoftDeleteDetectionTest extends TestCase
     public function test_api_attribute_without_soft_deletes_has_regular_operations(): void
     {
         $reflection = new ReflectionClass(RegularModel::class);
-        $attributes = $reflection->getAttributes(API::class);
+        $attributes = $reflection->getAttributes(ApiResource::class);
         $apiAttribute = $attributes[0]->newInstance();
 
         // Simulate the automatic soft deletes detection (should not change anything)
@@ -94,7 +94,7 @@ class SoftDeleteDetectionTest extends TestCase
     public function test_explicit_soft_deletes_false_is_respected(): void
     {
         $reflection = new ReflectionClass(ExplicitlyDisabledSoftDeleteModel::class);
-        $attributes = $reflection->getAttributes(API::class);
+        $attributes = $reflection->getAttributes(ApiResource::class);
         $apiAttribute = $attributes[0]->newInstance();
 
         // Even though the model uses SoftDeletes trait, the explicit false should be respected
@@ -112,7 +112,7 @@ class SoftDeleteDetectionTest extends TestCase
 
     public function test_with_soft_deletes_creates_new_instance(): void
     {
-        $original = new API(prefix: 'test', softDeletes: false);
+        $original = new ApiResource(prefix: 'test', softDeletes: false);
         $withSoftDeletes = $original->withSoftDeletes(true);
 
         $this->assertNotSame($original, $withSoftDeletes);

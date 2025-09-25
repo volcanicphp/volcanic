@@ -16,7 +16,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use LogicException;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiQueryService;
 
 class ApiController extends Controller
@@ -199,7 +199,7 @@ class ApiController extends Controller
     /**
      * Find a model instance.
      */
-    protected function findModel(string $modelClass, string $id, API $apiConfig): Model
+    protected function findModel(string $modelClass, string $id, ApiResource $apiConfig): Model
     {
         try {
             $query = $modelClass::query();
@@ -248,7 +248,7 @@ class ApiController extends Controller
     /**
      * Validate the request data.
      */
-    protected function validateRequest(Request $request, API $apiConfig, string $operation): ValidatorObject|FormRequest
+    protected function validateRequest(Request $request, ApiResource $apiConfig, string $operation): ValidatorObject|FormRequest
     {
         $rules = $apiConfig->getValidationRulesForOperation($operation);
 

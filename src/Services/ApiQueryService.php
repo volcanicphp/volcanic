@@ -7,7 +7,7 @@ namespace Volcanic\Services;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Volcanic\Attributes\API;
+use Volcanic\Attributes\ApiResource;
 use Volcanic\Exceptions\InvalidFieldException;
 
 class ApiQueryService
@@ -15,7 +15,7 @@ class ApiQueryService
     /**
      * Build a query based on the API configuration and request parameters.
      */
-    public function buildQuery(string $modelClass, API $apiConfig, Request $request): Builder
+    public function buildQuery(string $modelClass, ApiResource $apiConfig, Request $request): Builder
     {
         $query = $modelClass::query();
 
@@ -32,7 +32,7 @@ class ApiQueryService
     /**
      * Apply sorting to the query.
      */
-    protected function applySorting(Builder $query, API $apiConfig, Request $request): void
+    protected function applySorting(Builder $query, ApiResource $apiConfig, Request $request): void
     {
         $sortBy = $request->input('sort_by');
         $sortDirection = $request->input('sort_direction', 'asc');
@@ -55,7 +55,7 @@ class ApiQueryService
     /**
      * Apply filtering to the query.
      */
-    protected function applyFiltering(Builder $query, API $apiConfig, Request $request): void
+    protected function applyFiltering(Builder $query, ApiResource $apiConfig, Request $request): void
     {
         $filter = $request->array('filter');
 
@@ -133,7 +133,7 @@ class ApiQueryService
     /**
      * Apply searching to the query.
      */
-    protected function applySearching(Builder $query, API $apiConfig, Request $request): void
+    protected function applySearching(Builder $query, ApiResource $apiConfig, Request $request): void
     {
         $search = $request->input('search');
 
@@ -157,7 +157,7 @@ class ApiQueryService
     /**
      * Apply soft delete handling to the query.
      */
-    protected function applySoftDeletes(Builder $query, API $apiConfig, Request $request): void
+    protected function applySoftDeletes(Builder $query, ApiResource $apiConfig, Request $request): void
     {
         if (! $apiConfig->isSoftDeletesEnabled()) {
             return;
@@ -222,7 +222,7 @@ class ApiQueryService
     /**
      * Determine if Scout search should be used.
      */
-    protected function shouldUseScoutSearch(Builder $query, API $apiConfig): bool
+    protected function shouldUseScoutSearch(Builder $query, ApiResource $apiConfig): bool
     {
         $model = $query->getModel();
 
