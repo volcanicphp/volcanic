@@ -241,8 +241,8 @@ class API
             sortable: $this->sortable,
             filterable: $this->filterable,
             searchable: $this->searchable,
-            softDeletes: $softDeletes,
             scoutSearch: $this->scoutSearch,
+            softDeletes: $softDeletes,
             rules: $this->rules,
         );
     }

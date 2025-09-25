@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Auto-Discover Controller Routes
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, Volcanic will automatically discover and register routes
+    | for controller methods that have the Route attribute. Set to false if
+    | you prefer to manually register routes.
+    |
+    */
+    'auto_discover_controller_routes' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default API Prefix
     |--------------------------------------------------------------------------
     |
@@ -46,6 +58,19 @@ return [
     */
     'model_paths' => [
         app_path('Models'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Controller Paths
+    |--------------------------------------------------------------------------
+    |
+    | Paths to scan for controllers with Route attributes on methods.
+    | If empty, will default to app_path('Http/Controllers').
+    |
+    */
+    'controller_paths' => [
+        app_path('Http/Controllers'),
     ],
 
 ];
