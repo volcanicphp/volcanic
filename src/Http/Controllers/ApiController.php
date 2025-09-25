@@ -6,7 +6,6 @@ namespace Volcanic\Http\Controllers;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,6 +27,8 @@ class ApiController extends Controller
      */
     public function index(Request $request): ResourceCollection
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -51,6 +52,8 @@ class ApiController extends Controller
      */
     public function store(Request $request): JsonResource
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -72,10 +75,12 @@ class ApiController extends Controller
      */
     public function show(Request $request, string $id): JsonResource
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
-        $model = $this->findModel($modelClass, $id, $apiConfig, $request);
+        $model = $this->findModel($modelClass, $id, $apiConfig);
 
         $this->authorizeRequest('view', $model);
 
@@ -91,6 +96,8 @@ class ApiController extends Controller
      */
     public function update(Request $request, string $id): JsonResource
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -114,6 +121,8 @@ class ApiController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -131,6 +140,8 @@ class ApiController extends Controller
      */
     public function restore(Request $request, string $id): JsonResource|JsonResponse
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -140,7 +151,7 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $model = $this->findTrashedModel($modelClass, $id, $request);
+        $model = $this->findTrashedModel($modelClass, $id);
 
         $this->authorizeRequest('restore', $model);
 
@@ -164,6 +175,8 @@ class ApiController extends Controller
      */
     public function forceDelete(Request $request, string $id): JsonResponse
     {
+        $this->forceJsonResponse($request);
+
         $modelClass = $request->route()->defaults['model'];
         $apiConfig = $request->route()->defaults['api_config'];
 
@@ -173,7 +186,7 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $model = $this->findModel($modelClass, $id, $apiConfig, $request);
+        $model = $this->findModel($modelClass, $id, $apiConfig);
 
         $this->authorizeRequest('forceDelete', $model);
 
@@ -185,7 +198,7 @@ class ApiController extends Controller
     /**
      * Find a model instance.
      */
-    protected function findModel(string $modelClass, string $id, API $apiConfig, Request $request): Model
+    protected function findModel(string $modelClass, string $id, API $apiConfig): Model
     {
         $query = $modelClass::query();
 
@@ -193,25 +206,19 @@ class ApiController extends Controller
             $query = $query->withTrashed();
         }
 
-        // Force JSON response
-        $request->headers->set('Accept', 'application/json');
-
         return $query->findOrFail($id);
     }
 
     /**
      * Find a trashed model instance (soft deleted).
      */
-    protected function findTrashedModel(string $modelClass, string $id, Request $request): Model
+    protected function findTrashedModel(string $modelClass, string $id): Model
     {
         $query = $modelClass::query();
 
         if (method_exists($modelClass, 'onlyTrashed')) {
             $query = $query->onlyTrashed();
         }
-
-        // Force JSON response
-        $request->headers->set('Accept', 'application/json');
 
         return $query->findOrFail($id);
     }
@@ -268,5 +275,13 @@ class ApiController extends Controller
         }
 
         Gate::authorize($ability, $model);
+    }
+
+    /**
+     * Force JSON responses for API endpoints.
+     */
+    protected function forceJsonResponse(Request $request): void
+    {
+        $request->headers->set('Accept', 'application/json');
     }
 }

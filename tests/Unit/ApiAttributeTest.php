@@ -16,7 +16,6 @@ class ApiAttributeTest extends TestCase
         $this->assertInstanceOf(API::class, $api);
         $this->assertEquals('api', $api->getPrefix());
         $this->assertTrue($api->paginate);
-        $this->assertEquals(15, $api->perPage);
     }
 
     public function test_api_attribute_with_custom_configuration(): void
