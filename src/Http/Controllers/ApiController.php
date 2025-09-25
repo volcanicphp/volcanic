@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Volcanic\Http\Controllers;
 
+use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
@@ -211,7 +212,7 @@ class ApiController extends Controller
     /**
      * Validate the request data.
      */
-    protected function validateRequest(Request $request, API $apiConfig, string $operation): \Illuminate\Contracts\Validation\Validator|FormRequest
+    protected function validateRequest(Request $request, API $apiConfig, string $operation): ValidatorObject|FormRequest
     {
         $rules = $apiConfig->getValidationRulesForOperation($operation);
 
