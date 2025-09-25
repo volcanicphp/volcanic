@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Volcanic\Attributes\ApiRoute;
-use Volcanic\Services\RouteDiscoveryService;
+use Volcanic\Services\ApiRouteDiscoveryService;
 
 // Test controller class
 class TestRouteController extends Controller
@@ -55,9 +55,9 @@ class TestRouteController extends Controller
     }
 }
 
-describe('RouteDiscoveryService', function (): void {
+describe('ApiRouteDiscoveryService', function (): void {
     it('can discover methods with route attributes', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Use reflection to access the private method for testing
         $reflection = new ReflectionClass($routeDiscovery);
@@ -76,7 +76,7 @@ describe('RouteDiscoveryService', function (): void {
     });
 
     it('ignores methods without route attributes', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Use reflection to access the private method for testing
         $reflection = new ReflectionClass($routeDiscovery);
@@ -88,7 +88,7 @@ describe('RouteDiscoveryService', function (): void {
     });
 
     it('can generate default URIs correctly', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Use reflection to access the private method for testing
         $reflection = new ReflectionClass($routeDiscovery);
@@ -102,7 +102,7 @@ describe('RouteDiscoveryService', function (): void {
     });
 
     it('can build URIs correctly', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Use reflection to access the private method for testing
         $reflection = new ReflectionClass($routeDiscovery);
@@ -120,7 +120,7 @@ describe('RouteDiscoveryService', function (): void {
     });
 
     it('can extract class name from file', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Create a temporary PHP file
         $tempFile = tempnam(sys_get_temp_dir(), 'test_controller');
@@ -146,7 +146,7 @@ class TempController
     });
 
     it('handles file without namespace correctly', function (): void {
-        $routeDiscovery = new RouteDiscoveryService;
+        $routeDiscovery = new ApiRouteDiscoveryService;
 
         // Create a temporary PHP file without namespace
         $tempFile = tempnam(sys_get_temp_dir(), 'test_controller');

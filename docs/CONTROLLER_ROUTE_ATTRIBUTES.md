@@ -254,17 +254,17 @@ public function forceDelete(Request $request, int $id): JsonResponse
 2. **Register route discovery in your service provider:**
 
     ```php
-    use Volcanic\Services\RouteDiscoveryService;
+    use Volcanic\Services\ApiRouteDiscoveryService;
 
     public function boot()
     {
-        app(RouteDiscoveryService::class)->discoverAndRegisterRoutes();
+        app(ApiRouteDiscoveryService::class)->discoverAndRegisterRoutes();
     }
     ```
 
 3. **Or register routes for specific controllers:**
     ```php
-    app(RouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
+    app(ApiRouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
     ```
 
 ## Advanced Features

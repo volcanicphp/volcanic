@@ -279,7 +279,7 @@ public function onSale(): JsonResponse { }
 
 ## Route Registration
 
-The RouteDiscoveryService is automatically enabled by default through the VolcanicServiceProvider.
+The ApiRouteDiscoveryService is automatically enabled by default through the VolcanicServiceProvider.
 
 ### Automatic Registration (Default)
 
@@ -311,17 +311,17 @@ If you prefer manual control or need to register routes at specific times:
 #### In a Service Provider
 
 ```php
-use Volcanic\Services\RouteDiscoveryService;
+use Volcanic\Services\ApiRouteDiscoveryService;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function boot()
     {
         // Discover and register all routes in controllers
-        app(RouteDiscoveryService::class)->discoverAndRegisterRoutes();
+        app(ApiRouteDiscoveryService::class)->discoverAndRegisterRoutes();
 
         // Or specify custom controller paths
-        app(RouteDiscoveryService::class)->discoverAndRegisterRoutes([
+        app(ApiRouteDiscoveryService::class)->discoverAndRegisterRoutes([
             app_path('Http/Controllers/Api'),
             app_path('Http/Controllers/Admin'),
         ]);
@@ -332,10 +332,10 @@ class AppServiceProvider extends ServiceProvider
 #### For Specific Controllers
 
 ```php
-use Volcanic\Services\RouteDiscoveryService;
+use Volcanic\Services\ApiRouteDiscoveryService;
 
 // Register routes for a specific controller
-app(RouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
+app(ApiRouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
 ```
 
 ### Disabling Automatic Discovery

@@ -10,7 +10,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use Volcanic\Attributes\ApiRoute;
 
-class RouteDiscoveryService
+class ApiRouteDiscoveryService
 {
     /**
      * Discover and register routes for all controllers.

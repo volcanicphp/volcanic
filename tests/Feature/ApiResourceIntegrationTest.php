@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Override;
 use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Mock model for testing
@@ -34,13 +34,13 @@ class TestModel extends Model
 
 class ApiIntegrationTest extends TestCase
 {
-    protected ApiDiscoveryService $service;
+    protected ApiResourceDiscoveryService $service;
 
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ApiDiscoveryService;
+        $this->service = new ApiResourceDiscoveryService;
     }
 
     public function test_api_discovery_service_finds_models_with_api_attribute(): void

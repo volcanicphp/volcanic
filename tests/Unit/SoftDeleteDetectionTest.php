@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Override;
 use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Mock model without SoftDeletes
@@ -39,13 +39,13 @@ class ExplicitlyDisabledSoftDeleteModel extends Model
 
 class SoftDeleteDetectionTest extends TestCase
 {
-    protected ApiDiscoveryService $service;
+    protected ApiResourceDiscoveryService $service;
 
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ApiDiscoveryService;
+        $this->service = new ApiResourceDiscoveryService;
     }
 
     public function test_uses_soft_deletes_detects_trait_correctly(): void

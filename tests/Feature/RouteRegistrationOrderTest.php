@@ -51,10 +51,6 @@ describe('Route Registration Order', function (): void {
     });
 
     it('confirms service provider registration order change', function (): void {
-        // This test verifies that the VolcanicServiceProvider change is working
-        // by checking that the service provider registers API routes first, then controller routes
-        // so that controller routes take precedence (last registered wins)
-
         $serviceProvider = new VolcanicServiceProvider(app());
 
         // Use reflection to check the packageBooted method order
@@ -67,13 +63,11 @@ describe('Route Registration Order', function (): void {
         $endLine = $method->getEndLine();
         $source = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
 
-        // Verify that API routes are mentioned before controller routes in the source
-        // This ensures controller routes are registered last and thus take precedence
         $apiPos = strpos($source, 'auto_discover_routes');
         $controllerPos = strpos($source, 'auto_discover_controller_routes');
 
-        expect($apiPos)->toBeLessThan($controllerPos,
-            'API route discovery should come before controller route discovery so controller routes take precedence'
+        expect($apiPos)->toBeGreaterThan($controllerPos,
+            'ApiRoute discovery should come before ApiResource discovery so controller routes take precedence'
         );
     });
 });

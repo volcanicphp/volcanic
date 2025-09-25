@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Volcanic;
 
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 
 class Volcanic
 {
     public function __construct(
-        protected ApiDiscoveryService $discoveryService
+        protected ApiResourceDiscoveryService $discoveryService
     ) {}
 
     /**

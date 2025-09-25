@@ -6,7 +6,6 @@ namespace Volcanic\Http\Controllers;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,9 +14,9 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use LogicException;
 use Volcanic\Attributes\ApiResource;
+use Volcanic\Exceptions\InvalidParameterException;
 use Volcanic\Services\ApiQueryService;
 
 class ApiController extends Controller
@@ -202,24 +201,24 @@ class ApiController extends Controller
      */
     protected function findModel(string $modelClass, string $id, ApiResource $apiConfig): Model
     {
-        try {
-            $query = $modelClass::query();
+        $query = $modelClass::query();
+        $model = $query->getModel();
 
-            if ($apiConfig->isSoftDeletesEnabled() && method_exists($modelClass, 'withTrashed')) {
-                $query = $query->withTrashed();
-            }
+        $expectedType = in_array($model->getKeyType(), ['int', 'integer'], true) ? 'numeric' : 'string';
 
-            return $query->findOrFail($id);
-        } catch (QueryException $e) {
-            // Check if the error is related to invalid data type conversion
-            // This handles cases where PostgreSQL can't convert 'statuss' to bigint, etc.
-            if ($this->isInvalidIdTypeException($e)) {
-                abort(404);
-            }
+        $validator = Validator::make([$model->getKeyName() => $id], [
+            $model->getKeyName() => $expectedType,
+        ]);
 
-            // Re-throw other database exceptions (connection errors, etc.)
-            throw $e;
+        if ($validator->fails()) {
+            throw new InvalidParameterException($model->getKeyName(), $expectedType, $id);
         }
+
+        if ($apiConfig->isSoftDeletesEnabled() && method_exists($modelClass, 'withTrashed')) {
+            $query = $query->withTrashed();
+        }
+
+        return $query->findOrFail($id);
     }
 
     /**
@@ -227,23 +226,24 @@ class ApiController extends Controller
      */
     protected function findTrashedModel(string $modelClass, string $id): Model
     {
-        try {
-            $query = $modelClass::query();
+        $query = $modelClass::query();
+        $model = $query->getModel();
 
-            if (method_exists($modelClass, 'onlyTrashed')) {
-                $query = $query->onlyTrashed();
-            }
+        $expectedType = in_array($model->getKeyType(), ['int', 'integer'], true) ? 'numeric' : 'string';
 
-            return $query->findOrFail($id);
-        } catch (QueryException $e) {
-            // Check if the error is related to invalid data type conversion
-            if ($this->isInvalidIdTypeException($e)) {
-                abort(404);
-            }
+        $validator = Validator::make([$model->getKeyName() => $id], [
+            $model->getKeyName() => $expectedType,
+        ]);
 
-            // Re-throw other database exceptions
-            throw $e;
+        if ($validator->fails()) {
+            throw new InvalidParameterException($model->getKeyName(), $expectedType, $id);
         }
+
+        if (method_exists($modelClass, 'onlyTrashed')) {
+            $query = $query->onlyTrashed();
+        }
+
+        return $query->findOrFail($id);
     }
 
     /**
@@ -302,35 +302,5 @@ class ApiController extends Controller
     protected function forceJsonResponse(Request $request): void
     {
         $request->headers->set('Accept', 'application/json');
-    }
-
-    /**
-     * Check if the QueryException is caused by invalid ID type conversion.
-     */
-    protected function isInvalidIdTypeException(QueryException $e): bool
-    {
-        $errorMessage = strtolower($e->getMessage());
-
-        // PostgreSQL: Invalid text representation errors (22P02)
-        if (Str::contains($errorMessage, 'invalid input syntax for type')) {
-            return true;
-        }
-
-        // MySQL: Incorrect integer value errors
-        if (Str::contains($errorMessage, 'incorrect integer value') ||
-            Str::contains($errorMessage, 'invalid input syntax')) {
-            return true;
-        }
-
-        // SQLite: No error typically, but catch any type conversion issues
-        if (Str::contains($errorMessage, 'datatype mismatch')) {
-            return true;
-        }
-        // SQL Server: Conversion failed errors
-        if (Str::contains($errorMessage, 'conversion failed')) {
-            return true;
-        }
-
-        return Str::contains($errorMessage, 'invalid cast specification');
     }
 }

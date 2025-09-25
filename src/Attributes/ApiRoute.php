@@ -11,13 +11,13 @@ use Illuminate\Support\Str;
 class ApiRoute
 {
     public function __construct(
-        public readonly ?string $uri = null,
         public readonly array $methods = ['GET'],
+        public readonly ?string $uri = null,
         public readonly array $middleware = [],
         public readonly array $where = [],
         public readonly ?string $domain = null,
-        public readonly ?string $name = null,
         public readonly ?string $prefix = null,
+        public readonly ?string $name = null,
     ) {}
 
     /**

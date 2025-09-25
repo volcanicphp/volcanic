@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Override;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Test model for invalid ID testing (auto-increment)
@@ -58,14 +58,14 @@ class InvalidIdTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ApiDiscoveryService $discoveryService;
+    protected ApiResourceDiscoveryService $discoveryService;
 
     #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->discoveryService = new ApiDiscoveryService;
+        $this->discoveryService = new ApiResourceDiscoveryService;
 
         // Create products table (auto-increment ID)
         Schema::create('products', function (Blueprint $table): void {

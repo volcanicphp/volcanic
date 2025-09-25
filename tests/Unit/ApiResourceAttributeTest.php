@@ -7,7 +7,7 @@ namespace Volcanic\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Volcanic\Attributes\ApiResource;
 
-class ApiAttributeTest extends TestCase
+class ApiResourceAttributeTest extends TestCase
 {
     public function test_api_attribute_can_be_instantiated(): void
     {

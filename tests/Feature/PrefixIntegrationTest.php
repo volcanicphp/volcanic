@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Override;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 #[ApiResource(name: 'example-items')]
@@ -49,7 +49,7 @@ class PrefixIntegrationTest extends TestCase
         $this->createTestTables();
 
         // Register the routes
-        $apiDiscovery = new ApiDiscoveryService;
+        $apiDiscovery = new ApiResourceDiscoveryService;
         $apiDiscovery->registerModelRoutes(DefaultPrefixModel::class);
         $apiDiscovery->registerModelRoutes(V1PrefixModel::class);
         $apiDiscovery->registerModelRoutes(V2PrefixModel::class);

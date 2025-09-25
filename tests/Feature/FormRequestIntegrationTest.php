@@ -10,7 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Override;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Services\ApiDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
 use Volcanic\Tests\TestCase;
 
 // Test FormRequest classes
@@ -136,7 +136,7 @@ class FormRequestIntegrationTest extends TestCase
         });
 
         // Register routes for test models
-        $discoveryService = new ApiDiscoveryService;
+        $discoveryService = new ApiResourceDiscoveryService;
         $models = [
             FormRequestProductSingle::class,
             FormRequestProductPerOperation::class,

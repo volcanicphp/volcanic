@@ -8,9 +8,9 @@ use Illuminate\Foundation\Application;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Volcanic\Commands\VolcanicCommand;
-use Volcanic\Services\ApiDiscoveryService;
 use Volcanic\Services\ApiQueryService;
-use Volcanic\Services\RouteDiscoveryService;
+use Volcanic\Services\ApiResourceDiscoveryService;
+use Volcanic\Services\ApiRouteDiscoveryService;
 
 class VolcanicServiceProvider extends PackageServiceProvider
 {
@@ -24,28 +24,28 @@ class VolcanicServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->app->singleton(ApiDiscoveryService::class);
+        $this->app->singleton(ApiResourceDiscoveryService::class);
         $this->app->singleton(ApiQueryService::class);
-        $this->app->singleton(RouteDiscoveryService::class);
+        $this->app->singleton(ApiRouteDiscoveryService::class);
 
         $this->app->singleton(Volcanic::class, fn (Application $app): Volcanic => new Volcanic(
-            $app->make(ApiDiscoveryService::class)
+            $app->make(ApiResourceDiscoveryService::class)
         ));
     }
 
     public function packageBooted(): void
     {
+        if (config('volcanic.auto_discover_controller_routes', true)) {
+            // Discover and register controller method-based routes
+            $routeDiscovery = $this->app->make(ApiRouteDiscoveryService::class);
+            $controllerPaths = config('volcanic.controller_paths', []);
+            $routeDiscovery->discoverAndRegisterRoutes($controllerPaths);
+        }
+
         if (config('volcanic.auto_discover_routes', true)) {
             // Discover and register model-based API routes
             $volcanic = $this->app->make(Volcanic::class);
             $volcanic->discoverApiRoutes();
-        }
-
-        if (config('volcanic.auto_discover_controller_routes', true)) {
-            // Discover and register controller method-based routes
-            $routeDiscovery = $this->app->make(RouteDiscoveryService::class);
-            $controllerPaths = config('volcanic.controller_paths', []);
-            $routeDiscovery->discoverAndRegisterRoutes($controllerPaths);
         }
     }
 }

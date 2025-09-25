@@ -13,7 +13,7 @@ use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Http\Controllers\ApiController;
 
-class ApiDiscoveryService
+class ApiResourceDiscoveryService
 {
     /**
      * Discover and register API routes for models with the API attribute.
