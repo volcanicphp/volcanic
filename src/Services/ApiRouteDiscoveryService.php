@@ -166,7 +166,11 @@ class ApiRouteDiscoveryService
 
         $controllerName = Str::kebab(Str::plural($resourceName));
 
-        return $controllerName.'/'.Str::kebab($methodName);
+        $uri = in_array($methodName, ['index', '__invoke'], true)
+            ? null
+            : '/'.Str::kebab($methodName);
+
+        return $controllerName.$uri;
     }
 
     /**
