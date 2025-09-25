@@ -18,10 +18,14 @@ use LogicException;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Exceptions\InvalidParameterException;
 use Volcanic\Services\ApiQueryService;
+use Volcanic\Services\PaginationService;
 
 class ApiController extends Controller
 {
-    public function __construct(protected ApiQueryService $queryService) {}
+    public function __construct(
+        protected ApiQueryService $queryService,
+        protected PaginationService $paginationService
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -38,7 +42,7 @@ class ApiController extends Controller
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
         $data = $apiConfig->paginate
-            ? $query->paginate($apiConfig->getPerPage())
+            ? $this->paginationService->paginate($query, $apiConfig, $request)
             : $query->get();
 
         try {

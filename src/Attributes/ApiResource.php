@@ -7,6 +7,7 @@ namespace Volcanic\Attributes;
 use Attribute;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Volcanic\Enums\PaginationType;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class ApiResource
@@ -18,6 +19,7 @@ class ApiResource
         public readonly array $except = [],
         public readonly array $middleware = [],
         public readonly bool $paginate = true,
+        public readonly ?PaginationType $paginationType = null,
         public readonly ?int $perPage = null,
         public readonly array $sortable = ['*'],
         public readonly array $filterable = ['*'],
@@ -132,8 +134,29 @@ class ApiResource
     {
         return [
             'enabled' => $this->paginate,
+            'type' => $this->getPaginationType(),
             'per_page' => $this->getPerPage(),
         ];
+    }
+
+    /**
+     * Get the pagination type, using config default if not specified.
+     */
+    public function getPaginationType(): PaginationType
+    {
+        if ($this->paginationType instanceof PaginationType) {
+            return $this->paginationType;
+        }
+
+        $configType = config('volcanic.default_pagination_type', PaginationType::PAGINATE);
+
+        // If config returns a string (for backward compatibility), convert it to enum
+        if (is_string($configType)) {
+            return PaginationType::fromString($configType);
+        }
+
+        // If config returns enum directly, use it
+        return $configType instanceof PaginationType ? $configType : PaginationType::PAGINATE;
     }
 
     /**
@@ -247,6 +270,7 @@ class ApiResource
             except: $this->except,
             middleware: $this->middleware,
             paginate: $this->paginate,
+            paginationType: $this->paginationType,
             perPage: $this->perPage,
             sortable: $this->sortable,
             filterable: $this->filterable,

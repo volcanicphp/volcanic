@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Volcanic\Enums\PaginationType;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -47,6 +49,17 @@ return [
     |
     */
     'default_per_page' => 15,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Pagination Type
+    |--------------------------------------------------------------------------
+    |
+    | The default pagination type to use for API endpoints when not specified.
+    | Uses the PaginationType enum for type safety.
+    |
+    */
+    'default_pagination_type' => PaginationType::PAGINATE,
 
     /*
     |--------------------------------------------------------------------------
