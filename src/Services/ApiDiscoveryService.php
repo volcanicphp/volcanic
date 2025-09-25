@@ -184,10 +184,9 @@ class ApiDiscoveryService
      */
     protected function getModelPaths(): array
     {
-        return [
+        return config('volcanic.model_paths', [
             app_path('Models'),
-            app_path(),
-        ];
+        ]);
     }
 
     /**

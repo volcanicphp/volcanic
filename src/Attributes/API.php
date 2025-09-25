@@ -21,8 +21,8 @@ class API
         public readonly array $sortable = [],
         public readonly array $filterable = [],
         public readonly array $searchable = [],
-        public readonly ?bool $softDeletes = null,
         public readonly ?bool $scoutSearch = null,
+        public readonly ?bool $softDeletes = null,
         public readonly array|string $rules = [],
     ) {}
 
