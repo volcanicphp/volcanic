@@ -18,8 +18,8 @@ describe('ApiRoute Attribute', function (): void {
 
     it('can be instantiated with custom parameters', function (): void {
         $route = new ApiRoute(
-            uri: '/api/products/{id}',
             methods: ['POST', 'PUT'],
+            uri: '/api/products/{id}',
             middleware: ['auth:api', 'throttle:60,1'],
             where: ['id' => '[0-9]+'],
             domain: 'api.example.com',
@@ -84,5 +84,58 @@ describe('ApiRoute Attribute', function (): void {
         expect($route->getUri())->toBeNull();
         expect($route->getName())->toBeNull();
         expect($route->getDomain())->toBeNull();
+    });
+
+    it('determines correct HTTP methods based on method names', function (): void {
+        // Test index method
+        $route = new ApiRoute;
+        expect($route->getMethods('index'))->toBe(['GET']);
+
+        // Test show method
+        $route = new ApiRoute;
+        expect($route->getMethods('show'))->toBe(['GET']);
+
+        // Test store method
+        $route = new ApiRoute;
+        expect($route->getMethods('store'))->toBe(['POST']);
+
+        // Test update method
+        $route = new ApiRoute;
+        expect($route->getMethods('update'))->toBe(['PUT', 'PATCH']);
+
+        // Test destroy method
+        $route = new ApiRoute;
+        expect($route->getMethods('destroy'))->toBe(['DELETE']);
+
+        // Test delete method
+        $route = new ApiRoute;
+        expect($route->getMethods('delete'))->toBe(['DELETE']);
+
+        // Test forceDelete method
+        $route = new ApiRoute;
+        expect($route->getMethods('forceDelete'))->toBe(['DELETE']);
+
+        // Test restore method
+        $route = new ApiRoute;
+        expect($route->getMethods('restore'))->toBe(['PATCH']);
+
+        // Test unknown method defaults to GET
+        $route = new ApiRoute;
+        expect($route->getMethods('customMethod'))->toBe(['GET']);
+    });
+
+    it('uses explicit methods when provided', function (): void {
+        // Test that explicit methods override auto-detection
+        $route = new ApiRoute(methods: ['POST', 'PUT']);
+        expect($route->getMethods('index'))->toBe(['POST', 'PUT']);
+        expect($route->getMethods('show'))->toBe(['POST', 'PUT']);
+        expect($route->getMethods('store'))->toBe(['POST', 'PUT']);
+        expect($route->getMethods('customMethod'))->toBe(['POST', 'PUT']);
+    });
+
+    it('handles empty method name gracefully', function (): void {
+        $route = new ApiRoute;
+        expect($route->getMethods())->toBe(['GET']);
+        expect($route->getMethods(''))->toBe(['GET']);
     });
 });

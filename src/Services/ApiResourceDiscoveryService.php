@@ -149,7 +149,7 @@ class ApiResourceDiscoveryService
 
             if (in_array('restore', $operations, true)) {
                 $middleware = $apiAttribute->getMiddlewareForOperation('restore');
-                Route::middleware($middleware)->post($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
+                Route::middleware($middleware)->patch($resourceName.'/{id}/restore', [$controllerClass, 'restore'])
                     ->defaults('model', $modelClass)
                     ->defaults('api_config', $apiAttribute)
                     ->name("$resourceName.restore");

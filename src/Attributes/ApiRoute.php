@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class ApiRoute
 {
     public function __construct(
-        public readonly array $methods = ['GET'],
+        public readonly array $methods = [],
         public readonly ?string $uri = null,
         public readonly array $middleware = [],
         public readonly array $where = [],
@@ -22,10 +22,30 @@ class ApiRoute
 
     /**
      * Get the HTTP methods for this route.
+     * If no methods are explicitly set, determine based on method name.
      */
-    public function getMethods(): array
+    public function getMethods(string $methodName = ''): array
     {
-        return $this->methods;
+        if ($this->methods !== []) {
+            return $this->methods;
+        }
+
+        return $this->determineHttpMethodsFromName($methodName);
+    }
+
+    /**
+     * Determine HTTP methods based on method name.
+     */
+    private function determineHttpMethodsFromName(string $methodName): array
+    {
+        return match ($methodName) {
+            'index', 'show' => ['GET'],
+            'store' => ['POST'],
+            'update' => ['PUT', 'PATCH'],
+            'destroy', 'delete', 'forceDelete' => ['DELETE'],
+            'restore' => ['PATCH'],
+            default => ['GET'],
+        };
     }
 
     /**

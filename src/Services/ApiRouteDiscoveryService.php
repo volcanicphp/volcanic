@@ -115,7 +115,7 @@ class ApiRouteDiscoveryService
         $uri = $this->buildUri($attribute, $controllerClass, $methodName);
 
         $route = LaravelRoute::match(
-            $attribute->getMethods(),
+            $attribute->getMethods($methodName),
             $uri,
             [$controllerClass, $methodName]
         );
