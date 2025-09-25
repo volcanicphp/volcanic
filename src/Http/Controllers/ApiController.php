@@ -6,7 +6,6 @@ namespace Volcanic\Http\Controllers;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
