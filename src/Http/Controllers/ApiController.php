@@ -96,7 +96,7 @@ class ApiController extends Controller
 
         $this->authorizeRequest('update', $model);
 
-        $validator = $this->validateRequest($request, $apiConfig, 'update', $model);
+        $validator = $this->validateRequest($request, $apiConfig, 'update');
 
         $model->update($validator->validated());
 
@@ -211,12 +211,12 @@ class ApiController extends Controller
     /**
      * Validate the request data.
      */
-    protected function validateRequest(Request $request, API $apiConfig, string $operation, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
+    protected function validateRequest(Request $request, API $apiConfig, string $operation): \Illuminate\Contracts\Validation\Validator|FormRequest
     {
         $rules = $apiConfig->getValidationRulesForOperation($operation);
 
         if (is_string($rules)) {
-            return $this->validateWithFormRequest($request, $rules, $model);
+            return $this->validateWithFormRequest($rules);
         }
 
         if (is_array($rules)) {
@@ -229,7 +229,7 @@ class ApiController extends Controller
     /**
      * Validate request using a FormRequest class.
      */
-    protected function validateWithFormRequest(Request $request, string $formRequestClass, ?Model $model = null): \Illuminate\Contracts\Validation\Validator
+    protected function validateWithFormRequest(string $formRequestClass): FormRequest
     {
         // Check if the FormRequest class exists
         if (! class_exists($formRequestClass)) {
@@ -241,38 +241,7 @@ class ApiController extends Controller
             throw new LogicException("Class {$formRequestClass} must extend ".FormRequest::class);
         }
 
-        // Create an instance of the FormRequest
-        $formRequest = app($formRequestClass);
-
-        // Set the route parameters and model if available
-        if ($model instanceof Model) {
-            $formRequest->setRouteResolver(function () use ($request, $model) {
-                $route = $request->route();
-                $route->setParameter('model', $model);
-
-                return $route;
-            });
-        }
-
-        // Merge the current request data
-        $formRequest->merge($request->all());
-        $formRequest->setMethod($request->method());
-        $formRequest->headers = $request->headers;
-
-        // Get the validation rules from the FormRequest
-        $rules = $formRequest->rules();
-        $messages = method_exists($formRequest, 'messages') ? $formRequest->messages() : [];
-        $attributes = method_exists($formRequest, 'attributes') ? $formRequest->attributes() : [];
-
-        // Create and return the validator
-        $validator = Validator::make($request->all(), $rules, $messages, $attributes);
-
-        // Apply any custom validation logic if the FormRequest has a configure method
-        if (method_exists($formRequest, 'configure')) {
-            $formRequest->configure($validator);
-        }
-
-        return $validator;
+        return resolve($formRequestClass);
     }
 
     /**
