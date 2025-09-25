@@ -15,6 +15,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use LogicException;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiQueryService;
@@ -311,23 +312,25 @@ class ApiController extends Controller
         $errorMessage = strtolower($e->getMessage());
 
         // PostgreSQL: Invalid text representation errors (22P02)
-        if (str_contains($errorMessage, 'invalid input syntax for type')) {
+        if (Str::contains($errorMessage, 'invalid input syntax for type')) {
             return true;
         }
 
         // MySQL: Incorrect integer value errors
-        if (str_contains($errorMessage, 'incorrect integer value') ||
-            str_contains($errorMessage, 'invalid input syntax')) {
+        if (Str::contains($errorMessage, 'incorrect integer value') ||
+            Str::contains($errorMessage, 'invalid input syntax')) {
             return true;
         }
 
         // SQLite: No error typically, but catch any type conversion issues
-        if (str_contains($errorMessage, 'datatype mismatch')) {
+        if (Str::contains($errorMessage, 'datatype mismatch')) {
+            return true;
+        }
+        // SQL Server: Conversion failed errors
+        if (Str::contains($errorMessage, 'conversion failed')) {
             return true;
         }
 
-        // SQL Server: Conversion failed errors
-        return str_contains($errorMessage, 'conversion failed') ||
-            str_contains($errorMessage, 'invalid cast specification');
+        return Str::contains($errorMessage, 'invalid cast specification');
     }
 }

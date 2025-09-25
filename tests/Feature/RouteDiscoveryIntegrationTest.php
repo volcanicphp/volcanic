@@ -43,12 +43,12 @@ describe('Route Discovery Integration', function (): void {
         }
 
         expect($route)->not->toBeNull('Route "test.simple" should be registered');
-        expect($route->uri())->toBe('test/simple');
+        expect($route->uri())->toBe('api/test/simple');
         expect($route->methods())->toContain('GET');
 
         // Verify route helper works (additional confirmation)
         $routeUrl = route('test.simple', [], false);
-        expect($routeUrl)->toBe('/test/simple');
+        expect($routeUrl)->toBe('/api/test/simple');
 
         // Also verify the middleware was applied correctly
         expect($route->middleware())->toContain('web');

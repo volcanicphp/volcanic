@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Volcanic\Attributes;
 
 use Attribute;
+use Illuminate\Support\Str;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class ApiRoute
@@ -16,6 +17,7 @@ class ApiRoute
         public readonly array $where = [],
         public readonly ?string $domain = null,
         public readonly ?string $name = null,
+        public readonly ?string $prefix = null,
     ) {}
 
     /**
@@ -72,5 +74,24 @@ class ApiRoute
     public function getDomain(): ?string
     {
         return $this->domain;
+    }
+
+    /**
+     * Get the API route prefix.
+     * Always returns a path starting with 'api'.
+     */
+    public function getPrefix(): string
+    {
+        $basePrefix = $this->prefix ?? 'api';
+
+        if ($basePrefix === 'api') {
+            return 'api';
+        }
+
+        if (! Str::startsWith($basePrefix, 'api/')) {
+            return 'api/'.ltrim($basePrefix, '/');
+        }
+
+        return $basePrefix;
     }
 }

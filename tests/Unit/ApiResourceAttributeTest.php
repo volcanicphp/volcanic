@@ -29,7 +29,7 @@ class ApiAttributeTest extends TestCase
             perPage: 25
         );
 
-        $this->assertEquals('v1', $api->getPrefix());
+        $this->assertEquals('api/v1', $api->getPrefix());
         $this->assertEquals('custom-users', $api->getName());
         $this->assertEquals(['index', 'show'], $api->getOperations());
         $this->assertEquals(['auth:sanctum'], $api->middleware);

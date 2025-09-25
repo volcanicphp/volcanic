@@ -61,7 +61,7 @@ class ApiIntegrationTest extends TestCase
 
         $apiAttribute = $attributes[0]->newInstance();
 
-        $this->assertEquals('test', $apiAttribute->getPrefix());
+        $this->assertEquals('api/test', $apiAttribute->getPrefix());
         $this->assertEquals('test-items', $apiAttribute->getName());
         $this->assertEquals(['name'], $apiAttribute->sortable);
         $this->assertEquals(['status'], $apiAttribute->filterable);

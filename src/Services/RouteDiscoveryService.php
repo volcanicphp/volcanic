@@ -120,6 +120,9 @@ class RouteDiscoveryService
             [$controllerClass, $methodName]
         );
 
+        // Apply prefix
+        $route->prefix($attribute->getPrefix());
+
         // Apply middleware
         if ($attribute->getMiddleware() !== []) {
             $route->middleware($attribute->getMiddleware());
@@ -138,9 +141,6 @@ class RouteDiscoveryService
         // Apply route name
         if ($attribute->getName() !== null) {
             $route->name($attribute->getName());
-        } else {
-            // Generate default name
-            $route->name($this->generateDefaultRouteName($controllerClass, $methodName));
         }
     }
 
@@ -167,18 +167,6 @@ class RouteDiscoveryService
         );
 
         return $controllerName.'/'.Str::kebab($methodName);
-    }
-
-    /**
-     * Generate default route name.
-     */
-    private function generateDefaultRouteName(string $controllerClass, string $methodName): string
-    {
-        $controllerName = Str::kebab(
-            Str::replaceLast('Controller', '', class_basename($controllerClass))
-        );
-
-        return $controllerName.'.'.Str::kebab($methodName);
     }
 
     /**

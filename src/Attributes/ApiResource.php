@@ -6,6 +6,7 @@ namespace Volcanic\Attributes;
 
 use Attribute;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class ApiResource
@@ -83,10 +84,21 @@ class ApiResource
 
     /**
      * Get the API resource prefix.
+     * Always returns a path starting with 'api'.
      */
     public function getPrefix(): string
     {
-        return $this->prefix ?? 'api';
+        $basePrefix = $this->prefix ?? 'api';
+
+        if ($basePrefix === 'api') {
+            return 'api';
+        }
+
+        if (! Str::startsWith($basePrefix, 'api/')) {
+            return 'api/'.ltrim($basePrefix, '/');
+        }
+
+        return $basePrefix;
     }
 
     /**

@@ -118,7 +118,7 @@ class SoftDeleteDetectionTest extends TestCase
         $this->assertNotSame($original, $withSoftDeletes);
         $this->assertFalse($original->isSoftDeletesEnabled());
         $this->assertTrue($withSoftDeletes->isSoftDeletesEnabled());
-        $this->assertEquals('test', $withSoftDeletes->getPrefix());
+        $this->assertEquals('api/test', $withSoftDeletes->getPrefix());
     }
 
     /**

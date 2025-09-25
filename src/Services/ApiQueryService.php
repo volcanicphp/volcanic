@@ -7,6 +7,7 @@ namespace Volcanic\Services;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Exceptions\InvalidFieldException;
 
@@ -94,7 +95,7 @@ class ApiQueryService
     {
         if (is_array($value)) {
             $query->whereIn($field, $value);
-        } elseif (is_string($value) && str_contains($value, ',')) {
+        } elseif (is_string($value) && Str::contains($value, ',')) {
             $query->whereIn($field, explode(',', $value));
         } else {
             $query->where($field, $value);
@@ -108,7 +109,7 @@ class ApiQueryService
     {
         if (is_array($value)) {
             $query->whereNotIn($field, $value);
-        } elseif (is_string($value) && str_contains($value, ',')) {
+        } elseif (is_string($value) && Str::contains($value, ',')) {
             $query->whereNotIn($field, explode(',', $value));
         } else {
             $query->where($field, '!=', $value);
@@ -122,7 +123,7 @@ class ApiQueryService
     {
         if (is_array($value) && count($value) === 2) {
             $query->whereBetween($field, [$value[0], $value[1]]);
-        } elseif (is_string($value) && str_contains($value, ',')) {
+        } elseif (is_string($value) && Str::contains($value, ',')) {
             $range = explode(',', $value, 2);
             if (count($range) === 2) {
                 $query->whereBetween($field, [$range[0], $range[1]]);

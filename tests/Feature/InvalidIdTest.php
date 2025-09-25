@@ -106,7 +106,7 @@ class InvalidIdTest extends TestCase
         ];
 
         foreach ($invalidIds as $invalidId) {
-            $response = $this->getJson("/test-api/products/{$invalidId}");
+            $response = $this->getJson("/api/test-api/products/{$invalidId}");
 
             // Should return 404, not a SQL error
             $response->assertStatus(404);
@@ -131,7 +131,7 @@ class InvalidIdTest extends TestCase
         ];
 
         foreach ($invalidUuids as $invalidUuid) {
-            $response = $this->getJson("/test-api/uuid-products/{$invalidUuid}");
+            $response = $this->getJson("/api/test-api/uuid-products/{$invalidUuid}");
 
             $response->assertStatus(404);
             $response->assertJsonMissing(['sqlstate', 'sql']);
@@ -141,7 +141,7 @@ class InvalidIdTest extends TestCase
 
     public function test_valid_numeric_id_works(): void
     {
-        $response = $this->getJson('/test-api/products/1');
+        $response = $this->getJson('/api/test-api/products/1');
         $response->assertStatus(200);
         $response->assertJson([
             'data' => [
@@ -156,7 +156,7 @@ class InvalidIdTest extends TestCase
     {
         $uuidProduct = UuidProduct::first();
 
-        $response = $this->getJson("/test-api/uuid-products/{$uuidProduct->id}");
+        $response = $this->getJson("/api/test-api/uuid-products/{$uuidProduct->id}");
         $response->assertStatus(200);
         $response->assertJson([
             'data' => [
@@ -169,7 +169,7 @@ class InvalidIdTest extends TestCase
 
     public function test_valid_numeric_id_not_found_returns_404(): void
     {
-        $response = $this->getJson('/test-api/products/999');
+        $response = $this->getJson('/api/test-api/products/999');
         $response->assertStatus(404);
     }
 
@@ -177,13 +177,13 @@ class InvalidIdTest extends TestCase
     {
         $nonExistentUuid = Str::uuid()->toString();
 
-        $response = $this->getJson("/test-api/uuid-products/{$nonExistentUuid}");
+        $response = $this->getJson("/api/test-api/uuid-products/{$nonExistentUuid}");
         $response->assertStatus(404);
     }
 
     public function test_invalid_id_in_update_returns_404(): void
     {
-        $response = $this->putJson('/test-api/products/statuss', [
+        $response = $this->putJson('/api/test-api/products/statuss', [
             'name' => 'Updated Product',
             'price' => 29.99,
         ]);
@@ -194,20 +194,20 @@ class InvalidIdTest extends TestCase
 
     public function test_invalid_id_in_delete_returns_404(): void
     {
-        $response = $this->deleteJson('/test-api/products/statuss');
+        $response = $this->deleteJson('/api/test-api/products/statuss');
         $response->assertStatus(404);
         $response->assertJsonMissing(['sqlstate', 'sql']);
     }
 
     public function test_zero_id_returns_404(): void
     {
-        $response = $this->getJson('/test-api/products/0');
+        $response = $this->getJson('/api/test-api/products/0');
         $response->assertStatus(404);
     }
 
     public function test_negative_id_returns_404(): void
     {
-        $response = $this->getJson('/test-api/products/-1');
+        $response = $this->getJson('/api/test-api/products/-1');
         $response->assertStatus(404);
     }
 }
