@@ -2,14 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Feature;
-
 use Illuminate\Database\Eloquent\Model;
-use Override;
-use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiResourceDiscoveryService;
-use Volcanic\Tests\TestCase;
 
 // Mock model for testing
 #[ApiResource(
@@ -32,82 +27,67 @@ class TestModel extends Model
     protected $fillable = ['name', 'status', 'description'];
 }
 
-class ApiIntegrationTest extends TestCase
-{
-    protected ApiResourceDiscoveryService $service;
+test('api discovery service finds models with api attribute', function (): void {
+    $service = new ApiResourceDiscoveryService;
 
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = new ApiResourceDiscoveryService;
-    }
+    // Create a reflection to test the discovery method
+    $discoveredModels = $service->discoverModelsWithApiAttribute();
 
-    public function test_api_discovery_service_finds_models_with_api_attribute(): void
-    {
-        // Create a reflection to test the discovery method
-        $discoveredModels = $this->service->discoverModelsWithApiAttribute();
+    // The method should return an array
+    expect($discoveredModels)->toBeArray();
+});
 
-        // The method should return an array
-        $this->assertIsArray($discoveredModels);
-    }
+test('api attribute configuration is applied correctly', function (): void {
+    $reflection = new ReflectionClass(TestModel::class);
+    $attributes = $reflection->getAttributes(ApiResource::class);
 
-    public function test_api_attribute_configuration_is_applied_correctly(): void
-    {
-        $reflection = new ReflectionClass(TestModel::class);
-        $attributes = $reflection->getAttributes(ApiResource::class);
+    expect($attributes)->not()->toBeEmpty();
 
-        $this->assertNotEmpty($attributes);
+    $apiAttribute = $attributes[0]->newInstance();
 
-        $apiAttribute = $attributes[0]->newInstance();
+    expect($apiAttribute->getPrefix())->toBe('api/test');
+    expect($apiAttribute->getName())->toBe('test-items');
+    expect($apiAttribute->sortable)->toBe(['name']);
+    expect($apiAttribute->filterable)->toBe(['status']);
+    expect($apiAttribute->searchable)->toBe(['name', 'description']);
 
-        $this->assertEquals('api/test', $apiAttribute->getPrefix());
-        $this->assertEquals('test-items', $apiAttribute->getName());
-        $this->assertEquals(['name'], $apiAttribute->sortable);
-        $this->assertEquals(['status'], $apiAttribute->filterable);
-        $this->assertEquals(['name', 'description'], $apiAttribute->searchable);
+    $validationRules = $apiAttribute->getValidationRules();
+    expect($validationRules)->toHaveKey('store');
+    expect($validationRules['store'])->toHaveKey('name');
+});
 
-        $validationRules = $apiAttribute->getValidationRules();
-        $this->assertArrayHasKey('store', $validationRules);
-        $this->assertArrayHasKey('name', $validationRules['store']);
-    }
+test('api operations can be filtered', function (): void {
+    $apiWithOnly = new ApiResource(only: ['index', 'show']);
+    expect($apiWithOnly->getOperations())->toBe(['index', 'show']);
 
-    public function test_api_operations_can_be_filtered(): void
-    {
-        $apiWithOnly = new ApiResource(only: ['index', 'show']);
-        $this->assertEquals(['index', 'show'], $apiWithOnly->getOperations());
+    $apiWithExcept = new ApiResource(except: ['destroy']);
+    $expectedOperations = ['index', 'show', 'store', 'update'];
+    expect($apiWithExcept->getOperations())->toBe($expectedOperations);
+});
 
-        $apiWithExcept = new ApiResource(except: ['destroy']);
-        $expectedOperations = ['index', 'show', 'store', 'update'];
-        $this->assertEquals($expectedOperations, $apiWithExcept->getOperations());
-    }
+test('pagination settings are configured correctly', function (): void {
+    $apiWithPagination = new ApiResource(paginate: true, perPage: 25);
+    $paginationSettings = $apiWithPagination->getPaginationSettings();
 
-    public function test_pagination_settings_are_configured_correctly(): void
-    {
-        $apiWithPagination = new ApiResource(paginate: true, perPage: 25);
-        $paginationSettings = $apiWithPagination->getPaginationSettings();
+    expect($paginationSettings['enabled'])->toBeTrue();
+    expect($paginationSettings['per_page'])->toBe(25);
 
-        $this->assertTrue($paginationSettings['enabled']);
-        $this->assertEquals(25, $paginationSettings['per_page']);
+    $apiWithoutPagination = new ApiResource(paginate: false);
+    $paginationSettings = $apiWithoutPagination->getPaginationSettings();
 
-        $apiWithoutPagination = new ApiResource(paginate: false);
-        $paginationSettings = $apiWithoutPagination->getPaginationSettings();
+    expect($paginationSettings['enabled'])->toBeFalse();
+});
 
-        $this->assertFalse($paginationSettings['enabled']);
-    }
+test('query features are configured correctly', function (): void {
+    $api = new ApiResource(
+        sortable: ['name', 'created_at'],
+        filterable: ['status', 'category'],
+        searchable: ['name', 'content']
+    );
 
-    public function test_query_features_are_configured_correctly(): void
-    {
-        $api = new ApiResource(
-            sortable: ['name', 'created_at'],
-            filterable: ['status', 'category'],
-            searchable: ['name', 'content']
-        );
+    $queryFeatures = $api->getQueryFeatures();
 
-        $queryFeatures = $api->getQueryFeatures();
-
-        $this->assertEquals(['name', 'created_at'], $queryFeatures['sortable']);
-        $this->assertEquals(['status', 'category'], $queryFeatures['filterable']);
-        $this->assertEquals(['name', 'content'], $queryFeatures['searchable']);
-    }
-}
+    expect($queryFeatures['sortable'])->toBe(['name', 'created_at']);
+    expect($queryFeatures['filterable'])->toBe(['status', 'category']);
+    expect($queryFeatures['searchable'])->toBe(['name', 'content']);
+});

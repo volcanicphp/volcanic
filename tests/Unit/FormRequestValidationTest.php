@@ -2,14 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
-use Override;
-use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Tests\TestCase;
 
 // Test FormRequest for validation
 class TestProductRequest extends FormRequest
@@ -121,123 +116,105 @@ class ProductWithArrayRules extends Model
     protected $fillable = ['name', 'price'];
 }
 
-class FormRequestValidationTest extends TestCase
-{
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
+test('api attribute accepts string form request', function (): void {
+    $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_api_attribute_accepts_string_form_request(): void
-    {
-        $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $rules = $apiAttribute->getValidationRules();
 
-        $rules = $apiAttribute->getValidationRules();
+    expect($rules)->toBeString();
+    expect($rules)->toBe(TestProductRequest::class);
+});
 
-        $this->assertIsString($rules);
-        $this->assertEquals(TestProductRequest::class, $rules);
-    }
+test('api attribute accepts per operation form requests', function (): void {
+    $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_api_attribute_accepts_per_operation_form_requests(): void
-    {
-        $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $rules = $apiAttribute->getValidationRules();
 
-        $rules = $apiAttribute->getValidationRules();
+    expect($rules)->toBeArray();
+    expect($rules['store'])->toBe(TestProductStoreRequest::class);
+    expect($rules['update'])->toBe(TestProductUpdateRequest::class);
+});
 
-        $this->assertIsArray($rules);
-        $this->assertEquals(TestProductStoreRequest::class, $rules['store']);
-        $this->assertEquals(TestProductUpdateRequest::class, $rules['update']);
-    }
+test('get validation rules for operation with string rules', function (): void {
+    $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_get_validation_rules_for_operation_with_string_rules(): void
-    {
-        $reflection = new ReflectionClass(ProductWithSingleFormRequest::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
+    expect($storeRules)->toBe(TestProductRequest::class);
+    expect($updateRules)->toBe(TestProductRequest::class);
+});
 
-        $this->assertEquals(TestProductRequest::class, $storeRules);
-        $this->assertEquals(TestProductRequest::class, $updateRules);
-    }
+test('get validation rules for operation with per operation rules', function (): void {
+    $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_get_validation_rules_for_operation_with_per_operation_rules(): void
-    {
-        $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
+    expect($storeRules)->toBe(TestProductStoreRequest::class);
+    expect($updateRules)->toBe(TestProductUpdateRequest::class);
+});
 
-        $this->assertEquals(TestProductStoreRequest::class, $storeRules);
-        $this->assertEquals(TestProductUpdateRequest::class, $updateRules);
-    }
+test('get validation rules for operation with mixed validation', function (): void {
+    $reflection = new ReflectionClass(ProductWithMixedValidation::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_get_validation_rules_for_operation_with_mixed_validation(): void
-    {
-        $reflection = new ReflectionClass(ProductWithMixedValidation::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
+    expect($storeRules)->toBe(TestProductStoreRequest::class);
+    expect($updateRules)->toBeArray();
+    expect($updateRules['name'])->toBe('sometimes|string|max:255');
+});
 
-        $this->assertEquals(TestProductStoreRequest::class, $storeRules);
-        $this->assertIsArray($updateRules);
-        $this->assertEquals('sometimes|string|max:255', $updateRules['name']);
-    }
+test('get validation rules for operation with traditional array rules', function (): void {
+    $reflection = new ReflectionClass(ProductWithArrayRules::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_get_validation_rules_for_operation_with_traditional_array_rules(): void
-    {
-        $reflection = new ReflectionClass(ProductWithArrayRules::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
+    expect($storeRules)->toBeArray();
+    expect($updateRules)->toBeArray();
+    expect($storeRules['name'])->toBe('required|string|max:255');
+    expect($updateRules['name'])->toBe('sometimes|string|max:255');
+});
 
-        $this->assertIsArray($storeRules);
-        $this->assertIsArray($updateRules);
-        $this->assertEquals('required|string|max:255', $storeRules['name']);
-        $this->assertEquals('sometimes|string|max:255', $updateRules['name']);
-    }
+test('get validation rules for operation with no rules', function (): void {
+    $apiAttribute = new ApiResource;
 
-    public function test_get_validation_rules_for_operation_with_no_rules(): void
-    {
-        $apiAttribute = new ApiResource;
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
+    expect($storeRules)->toBe([]);
+    expect($updateRules)->toBe([]);
+});
 
-        $this->assertEquals([], $storeRules);
-        $this->assertEquals([], $updateRules);
-    }
+test('get validation rules for operation with non existent operation', function (): void {
+    $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
+    $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
 
-    public function test_get_validation_rules_for_operation_with_non_existent_operation(): void
-    {
-        $reflection = new ReflectionClass(ProductWithPerOperationFormRequests::class);
-        $apiAttribute = $reflection->getAttributes(ApiResource::class)[0]->newInstance();
+    $rules = $apiAttribute->getValidationRulesForOperation('nonexistent');
 
-        $rules = $apiAttribute->getValidationRulesForOperation('nonexistent');
+    expect($rules)->toBe([]);
+});
 
-        $this->assertEquals([], $rules);
-    }
+test('backward compatibility with simple array rules', function (): void {
+    // Test that simple arrays without operation keys still work
+    $apiAttribute = new ApiResource(rules: [
+        'name' => 'required|string',
+        'price' => 'required|numeric',
+    ]);
 
-    public function test_backward_compatibility_with_simple_array_rules(): void
-    {
-        // Test that simple arrays without operation keys still work
-        $apiAttribute = new ApiResource(rules: [
-            'name' => 'required|string',
-            'price' => 'required|numeric',
-        ]);
+    $storeRules = $apiAttribute->getValidationRulesForOperation('store');
+    $updateRules = $apiAttribute->getValidationRulesForOperation('update');
 
-        $storeRules = $apiAttribute->getValidationRulesForOperation('store');
-        $updateRules = $apiAttribute->getValidationRulesForOperation('update');
-
-        $this->assertIsArray($storeRules);
-        $this->assertIsArray($updateRules);
-        $this->assertEquals('required|string', $storeRules['name']);
-        $this->assertEquals('required|string', $updateRules['name']);
-    }
-}
+    expect($storeRules)->toBeArray();
+    expect($updateRules)->toBeArray();
+    expect($storeRules['name'])->toBe('required|string');
+    expect($updateRules['name'])->toBe('required|string');
+});

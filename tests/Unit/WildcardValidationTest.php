@@ -2,16 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Override;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Exceptions\InvalidFieldException;
 use Volcanic\Services\ApiQueryService;
-use Volcanic\Tests\TestCase;
 
 // Test model with wildcard support
 #[ApiResource(
@@ -39,80 +35,64 @@ class RestrictedTestModel extends Model
     protected $fillable = ['name', 'description', 'status'];
 }
 
-class WildcardValidationTest extends TestCase
-{
-    private ApiQueryService $service;
+test('wildcard allows fillable fields for sorting', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['sort_by' => 'name']);
+    $apiConfig = new ApiResource(sortable: ['*']);
 
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = new ApiQueryService;
-    }
+    // This should not throw an exception
+    $query = $service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-    public function test_wildcard_allows_fillable_fields_for_sorting(): void
-    {
-        $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new ApiResource(sortable: ['*']);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        // This should not throw an exception
-        $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
+test('wildcard allows fillable fields for filtering', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['filter' => ['name' => 'test']]);
+    $apiConfig = new ApiResource(filterable: ['*']);
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    // This should not throw an exception
+    $query = $service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-    public function test_wildcard_allows_fillable_fields_for_filtering(): void
-    {
-        $request = new Request(['filter' => ['name' => 'test']]);
-        $apiConfig = new ApiResource(filterable: ['*']);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        // This should not throw an exception
-        $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
+test('restricted fields throw exception for sorting', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['sort_by' => 'description']); // Not in sortable array
+    $apiConfig = new ApiResource(sortable: ['name', 'created_at']);
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    expect(fn (): Builder => $service->buildQuery(RestrictedTestModel::class, $apiConfig, $request))
+        ->toThrow(InvalidFieldException::class, "Field 'description' is not allowed for sorting. Allowed fields are: name, created_at");
+});
 
-    public function test_restricted_fields_throw_exception_for_sorting(): void
-    {
-        $request = new Request(['sort_by' => 'description']); // Not in sortable array
-        $apiConfig = new ApiResource(sortable: ['name', 'created_at']);
+test('restricted fields throw exception for filtering', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['filter' => ['name' => 'test']]); // Not in filterable array
+    $apiConfig = new ApiResource(filterable: ['status']);
 
-        $this->expectException(InvalidFieldException::class);
-        $this->expectExceptionMessage("Field 'description' is not allowed for sorting. Allowed fields are: name, created_at");
+    expect(fn (): Builder => $service->buildQuery(RestrictedTestModel::class, $apiConfig, $request))
+        ->toThrow(InvalidFieldException::class, "Field 'name' is not allowed for filtering. Allowed fields are: status");
+});
 
-        $this->service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
-    }
+test('empty allowed fields throw exception', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['sort_by' => 'name']);
+    $apiConfig = new ApiResource(sortable: []);
 
-    public function test_restricted_fields_throw_exception_for_filtering(): void
-    {
-        $request = new Request(['filter' => ['name' => 'test']]); // Not in filterable array
-        $apiConfig = new ApiResource(filterable: ['status']);
+    // Should not throw exception because sortBy validation returns early when sortable is empty
+    $query = $service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
 
-        $this->expectException(InvalidFieldException::class);
-        $this->expectExceptionMessage("Field 'name' is not allowed for filtering. Allowed fields are: status");
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        $this->service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
-    }
+test('explicitly allowed fields work with wildcard', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['sort_by' => 'name']);
+    $apiConfig = new ApiResource(sortable: ['name', '*']); // Both explicit and wildcard
 
-    public function test_empty_allowed_fields_throw_exception(): void
-    {
-        $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new ApiResource(sortable: []);
+    // This should work
+    $query = $service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
 
-        // Should not throw exception because sortBy validation returns early when sortable is empty
-        $query = $this->service->buildQuery(RestrictedTestModel::class, $apiConfig, $request);
-
-        $this->assertInstanceOf(Builder::class, $query);
-    }
-
-    public function test_explicitly_allowed_fields_work_with_wildcard(): void
-    {
-        $request = new Request(['sort_by' => 'name']);
-        $apiConfig = new ApiResource(sortable: ['name', '*']); // Both explicit and wildcard
-
-        // This should work
-        $query = $this->service->buildQuery(WildcardTestModel::class, $apiConfig, $request);
-
-        $this->assertInstanceOf(Builder::class, $query);
-    }
-}
+    expect($query)->toBeInstanceOf(Builder::class);
+});

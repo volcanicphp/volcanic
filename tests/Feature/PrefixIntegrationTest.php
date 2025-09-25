@@ -2,15 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Feature;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use Override;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiResourceDiscoveryService;
-use Volcanic\Tests\TestCase;
 
 #[ApiResource(name: 'example-items')]
 class DefaultPrefixModel extends Model
@@ -36,79 +32,69 @@ class V2PrefixModel extends Model
     protected $fillable = ['name'];
 }
 
-class PrefixIntegrationTest extends TestCase
+uses(RefreshDatabase::class);
+
+function createTestTables(): void
 {
-    use RefreshDatabase;
+    app('db')->connection()->getSchemaBuilder()->create('default_prefix_models', function ($table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+    });
 
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
+    app('db')->connection()->getSchemaBuilder()->create('v1_prefix_models', function ($table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+    });
 
-        // Create the test tables
-        $this->createTestTables();
-
-        // Register the routes
-        $apiDiscovery = new ApiResourceDiscoveryService;
-        $apiDiscovery->registerModelRoutes(DefaultPrefixModel::class);
-        $apiDiscovery->registerModelRoutes(V1PrefixModel::class);
-        $apiDiscovery->registerModelRoutes(V2PrefixModel::class);
-    }
-
-    private function createTestTables(): void
-    {
-        $this->app['db']->connection()->getSchemaBuilder()->create('default_prefix_models', function ($table): void {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        $this->app['db']->connection()->getSchemaBuilder()->create('v1_prefix_models', function ($table): void {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        $this->app['db']->connection()->getSchemaBuilder()->create('v2_prefix_models', function ($table): void {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-    }
-
-    public function test_default_prefix_creates_api_routes(): void
-    {
-        $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/example-items'));
-
-        $this->assertNotEmpty($routes);
-
-        // Check that we have the expected routes under /api/
-        $uris = $routes->pluck('uri')->toArray();
-        $this->assertContains('api/example-items', $uris);
-        $this->assertContains('api/example-items/{id}', $uris);
-    }
-
-    public function test_v1_prefix_creates_api_v1_routes(): void
-    {
-        $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/v1/v1-items'));
-
-        $this->assertNotEmpty($routes);
-
-        // Check that we have the expected routes under /api/v1/
-        $uris = $routes->pluck('uri')->toArray();
-        $this->assertContains('api/v1/v1-items', $uris);
-        $this->assertContains('api/v1/v1-items/{id}', $uris);
-    }
-
-    public function test_api_v2_prefix_preserves_api_v2_routes(): void
-    {
-        $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/v2/v2-items'));
-
-        $this->assertNotEmpty($routes);
-
-        // Check that we have the expected routes under /api/v2/
-        $uris = $routes->pluck('uri')->toArray();
-        $this->assertContains('api/v2/v2-items', $uris);
-        $this->assertContains('api/v2/v2-items/{id}', $uris);
-    }
+    app('db')->connection()->getSchemaBuilder()->create('v2_prefix_models', function ($table): void {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+    });
 }
+
+beforeEach(function (): void {
+    // Create the test tables
+    createTestTables();
+
+    // Register the routes
+    $apiDiscovery = new ApiResourceDiscoveryService;
+    $apiDiscovery->registerModelRoutes(DefaultPrefixModel::class);
+    $apiDiscovery->registerModelRoutes(V1PrefixModel::class);
+    $apiDiscovery->registerModelRoutes(V2PrefixModel::class);
+});
+
+test('default prefix creates api routes', function (): void {
+    $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/example-items'));
+
+    expect($routes)->not()->toBeEmpty();
+
+    // Check that we have the expected routes under /api/
+    $uris = $routes->pluck('uri')->toArray();
+    expect($uris)->toContain('api/example-items');
+    expect($uris)->toContain('api/example-items/{id}');
+});
+
+test('v1 prefix creates api v1 routes', function (): void {
+    $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/v1/v1-items'));
+
+    expect($routes)->not()->toBeEmpty();
+
+    // Check that we have the expected routes under /api/v1/
+    $uris = $routes->pluck('uri')->toArray();
+    expect($uris)->toContain('api/v1/v1-items');
+    expect($uris)->toContain('api/v1/v1-items/{id}');
+});
+
+test('api v2 prefix preserves api v2 routes', function (): void {
+    $routes = collect(Route::getRoutes()->getRoutes())->filter(fn ($route): bool => str_contains((string) $route->uri(), 'api/v2/v2-items'));
+
+    expect($routes)->not()->toBeEmpty();
+
+    // Check that we have the expected routes under /api/v2/
+    $uris = $routes->pluck('uri')->toArray();
+    expect($uris)->toContain('api/v2/v2-items');
+    expect($uris)->toContain('api/v2/v2-items/{id}');
+});

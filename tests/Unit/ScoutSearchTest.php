@@ -2,21 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Override;
 use Volcanic\Attributes\ApiResource;
 use Volcanic\Services\ApiQueryService;
-use Volcanic\Tests\TestCase;
 
 // Mock Scout Searchable trait
 trait MockSearchable
 {
-    public static function search(string $query): \Volcanic\Tests\Unit\MockSearchResults
+    public static function search(string $query): MockSearchResults
     {
         // Return mock search results with some IDs
         return new MockSearchResults([1, 2, 3]);
@@ -58,7 +54,7 @@ class ScoutEnabledTestModel extends Model
 
     protected $fillable = ['name', 'content'];
 
-    public static function search(string $query): \Volcanic\Tests\Unit\MockSearchResults
+    public static function search(string $query): MockSearchResults
     {
         return new MockSearchResults([]);
     }
@@ -89,79 +85,66 @@ class RegularTestModel extends Model
     protected $fillable = ['name', 'content'];
 }
 
-class ScoutSearchTest extends TestCase
-{
-    private ApiQueryService $service;
+test('scout search is auto detected when trait is present', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['search' => 'test query']);
+    $apiConfig = new ApiResource(searchable: ['name', 'content']);
 
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = new ApiQueryService;
-    }
+    $query = $service->buildQuery(ScoutTestModel::class, $apiConfig, $request);
 
-    public function test_scout_search_is_auto_detected_when_trait_is_present(): void
-    {
-        $request = new Request(['search' => 'test query']);
-        $apiConfig = new ApiResource(searchable: ['name', 'content']);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        $query = $this->service->buildQuery(ScoutTestModel::class, $apiConfig, $request);
+test('scout search is used when explicitly enabled', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['search' => 'test query']);
+    $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    $query = $service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 
-    public function test_scout_search_is_used_when_explicitly_enabled(): void
-    {
-        $request = new Request(['search' => 'test query']);
-        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
+test('scout search is not used when explicitly disabled', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['search' => 'test query']);
+    $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: false);
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    $query = $service->buildQuery(ScoutDisabledTestModel::class, $apiConfig, $request);
 
-    public function test_scout_search_is_not_used_when_explicitly_disabled(): void
-    {
-        $request = new Request(['search' => 'test query']);
-        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: false);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        $query = $this->service->buildQuery(ScoutDisabledTestModel::class, $apiConfig, $request);
+test('regular search is used when scout not available', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['search' => 'test query']);
+    $apiConfig = new ApiResource(searchable: ['name']);
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    $query = $service->buildQuery(RegularTestModel::class, $apiConfig, $request);
 
-    public function test_regular_search_is_used_when_scout_not_available(): void
-    {
-        $request = new Request(['search' => 'test query']);
-        $apiConfig = new ApiResource(searchable: ['name']);
+    expect($query)->toBeInstanceOf(Builder::class);
+});
 
-        $query = $this->service->buildQuery(RegularTestModel::class, $apiConfig, $request);
+test('api attribute scout methods', function (): void {
+    $api = new ApiResource(scoutSearch: true);
+    expect($api->isScoutSearchEnabled())->toBeTrue();
+    expect($api->isScoutSearchExplicitlySet())->toBeTrue();
 
-        $this->assertInstanceOf(Builder::class, $query);
-    }
+    $api = new ApiResource(scoutSearch: false);
+    expect($api->isScoutSearchEnabled())->toBeFalse();
+    expect($api->isScoutSearchExplicitlySet())->toBeTrue();
 
-    public function test_api_attribute_scout_methods(): void
-    {
-        $api = new ApiResource(scoutSearch: true);
-        $this->assertTrue($api->isScoutSearchEnabled());
-        $this->assertTrue($api->isScoutSearchExplicitlySet());
+    $api = new ApiResource;
+    expect($api->isScoutSearchEnabled())->toBeFalse();
+    expect($api->isScoutSearchExplicitlySet())->toBeFalse();
+});
 
-        $api = new ApiResource(scoutSearch: false);
-        $this->assertFalse($api->isScoutSearchEnabled());
-        $this->assertTrue($api->isScoutSearchExplicitlySet());
+test('scout search handles empty results', function (): void {
+    $service = new ApiQueryService;
+    $request = new Request(['search' => 'no results']);
+    $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
 
-        $api = new ApiResource;
-        $this->assertFalse($api->isScoutSearchEnabled());
-        $this->assertFalse($api->isScoutSearchExplicitlySet());
-    }
+    $query = $service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
 
-    public function test_scout_search_handles_empty_results(): void
-    {
-        $request = new Request(['search' => 'no results']);
-        $apiConfig = new ApiResource(searchable: ['name'], scoutSearch: true);
-
-        $query = $this->service->buildQuery(ScoutEnabledTestModel::class, $apiConfig, $request);
-
-        $this->assertInstanceOf(Builder::class, $query);
-    }
-}
+    expect($query)->toBeInstanceOf(Builder::class);
+});

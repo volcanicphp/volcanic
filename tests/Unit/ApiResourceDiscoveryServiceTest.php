@@ -2,31 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
-use Override;
 use Volcanic\Services\ApiResourceDiscoveryService;
-use Volcanic\Tests\TestCase;
 
-class ApiResourceDiscoveryServiceTest extends TestCase
-{
-    protected ApiResourceDiscoveryService $service;
+test('service can be instantiated', function (): void {
+    $service = new ApiResourceDiscoveryService;
 
-    #[Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = new ApiResourceDiscoveryService;
-    }
+    expect($service)->toBeInstanceOf(ApiResourceDiscoveryService::class);
+});
 
-    public function test_service_can_be_instantiated(): void
-    {
-        $this->assertInstanceOf(ApiResourceDiscoveryService::class, $this->service);
-    }
+test('discover models returns empty array when no models exist', function (): void {
+    $service = new ApiResourceDiscoveryService;
+    $models = $service->discoverModelsWithApiAttribute();
 
-    public function test_discover_models_returns_empty_array_when_no_models_exist(): void
-    {
-        $models = $this->service->discoverModelsWithApiAttribute();
-        $this->assertIsArray($models);
-    }
-}
+    expect($models)->toBeArray();
+});

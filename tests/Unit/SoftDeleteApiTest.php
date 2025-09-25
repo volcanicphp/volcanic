@@ -2,87 +2,76 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Tests\TestCase;
 
-class SoftDeleteApiTest extends TestCase
-{
-    public function test_api_attribute_includes_soft_delete_operations_when_enabled(): void
-    {
-        $apiWithSoftDeletes = new ApiResource(softDeletes: true);
+test('api attribute includes soft delete operations when enabled', function (): void {
+    $apiWithSoftDeletes = new ApiResource(softDeletes: true);
 
-        $operations = $apiWithSoftDeletes->getOperations();
+    $operations = $apiWithSoftDeletes->getOperations();
 
-        // Should include standard operations
-        $this->assertContains('index', $operations);
-        $this->assertContains('show', $operations);
-        $this->assertContains('store', $operations);
-        $this->assertContains('update', $operations);
-        $this->assertContains('destroy', $operations);
+    // Should include standard operations
+    expect($operations)->toContain('index');
+    expect($operations)->toContain('show');
+    expect($operations)->toContain('store');
+    expect($operations)->toContain('update');
+    expect($operations)->toContain('destroy');
 
-        // Should include soft delete operations
-        $this->assertContains('restore', $operations);
-        $this->assertContains('forceDelete', $operations);
-    }
+    // Should include soft delete operations
+    expect($operations)->toContain('restore');
+    expect($operations)->toContain('forceDelete');
+});
 
-    public function test_api_attribute_excludes_soft_delete_operations_when_disabled(): void
-    {
-        $apiWithoutSoftDeletes = new ApiResource(softDeletes: false);
+test('api attribute excludes soft delete operations when disabled', function (): void {
+    $apiWithoutSoftDeletes = new ApiResource(softDeletes: false);
 
-        $operations = $apiWithoutSoftDeletes->getOperations();
+    $operations = $apiWithoutSoftDeletes->getOperations();
 
-        // Should include standard operations
-        $this->assertContains('index', $operations);
-        $this->assertContains('destroy', $operations);
+    // Should include standard operations
+    expect($operations)->toContain('index');
+    expect($operations)->toContain('destroy');
 
-        // Should NOT include soft delete operations
-        $this->assertNotContains('restore', $operations);
-        $this->assertNotContains('forceDelete', $operations);
-    }
+    // Should NOT include soft delete operations
+    expect($operations)->not()->toContain('restore');
+    expect($operations)->not()->toContain('forceDelete');
+});
 
-    public function test_api_attribute_respects_only_filter_with_soft_deletes(): void
-    {
-        $api = new ApiResource(
-            only: ['index', 'restore'],
-            softDeletes: true
-        );
+test('api attribute respects only filter with soft deletes', function (): void {
+    $api = new ApiResource(
+        only: ['index', 'restore'],
+        softDeletes: true
+    );
 
-        $operations = $api->getOperations();
+    $operations = $api->getOperations();
 
-        // Should only include specified operations
-        $this->assertEqualsCanonicalizing(['index', 'restore'], $operations);
-        $this->assertNotContains('forceDelete', $operations);
-        $this->assertNotContains('store', $operations);
-    }
+    // Should only include specified operations
+    expect($operations)->toEqualCanonicalizing(['index', 'restore']);
+    expect($operations)->not()->toContain('forceDelete');
+    expect($operations)->not()->toContain('store');
+});
 
-    public function test_api_attribute_respects_except_filter_with_soft_deletes(): void
-    {
-        $api = new ApiResource(
-            except: ['forceDelete', 'destroy'],
-            softDeletes: true
-        );
+test('api attribute respects except filter with soft deletes', function (): void {
+    $api = new ApiResource(
+        except: ['forceDelete', 'destroy'],
+        softDeletes: true
+    );
 
-        $operations = $api->getOperations();
+    $operations = $api->getOperations();
 
-        // Should include all operations except the excluded ones
-        $this->assertContains('index', $operations);
-        $this->assertContains('restore', $operations);
-        $this->assertNotContains('forceDelete', $operations);
-        $this->assertNotContains('destroy', $operations);
-    }
+    // Should include all operations except the excluded ones
+    expect($operations)->toContain('index');
+    expect($operations)->toContain('restore');
+    expect($operations)->not()->toContain('forceDelete');
+    expect($operations)->not()->toContain('destroy');
+});
 
-    public function test_allows_operation_works_with_soft_delete_operations(): void
-    {
-        $api = new ApiResource(
-            only: ['restore', 'forceDelete'],
-            softDeletes: true
-        );
+test('allows operation works with soft delete operations', function (): void {
+    $api = new ApiResource(
+        only: ['restore', 'forceDelete'],
+        softDeletes: true
+    );
 
-        $this->assertTrue($api->allowsOperation('restore'));
-        $this->assertTrue($api->allowsOperation('forceDelete'));
-        $this->assertFalse($api->allowsOperation('index'));
-        $this->assertFalse($api->allowsOperation('store'));
-    }
-}
+    expect($api->allowsOperation('restore'))->toBeTrue();
+    expect($api->allowsOperation('forceDelete'))->toBeTrue();
+    expect($api->allowsOperation('index'))->toBeFalse();
+    expect($api->allowsOperation('store'))->toBeFalse();
+});

@@ -2,52 +2,40 @@
 
 declare(strict_types=1);
 
-namespace Volcanic\Tests\Unit;
-
-use PHPUnit\Framework\TestCase;
 use Volcanic\Attributes\ApiResource;
 
-class ApiResourcePrefixTest extends TestCase
-{
-    public function test_default_prefix_is_api(): void
-    {
-        $apiResource = new ApiResource;
+test('default prefix is api', function (): void {
+    $apiResource = new ApiResource;
 
-        $this->assertEquals('api', $apiResource->getPrefix());
-    }
+    expect($apiResource->getPrefix())->toBe('api');
+});
 
-    public function test_custom_prefix_gets_api_prepended(): void
-    {
-        $apiResource = new ApiResource(prefix: 'v1');
+test('custom prefix gets api prepended', function (): void {
+    $apiResource = new ApiResource(prefix: 'v1');
 
-        $this->assertEquals('api/v1', $apiResource->getPrefix());
-    }
+    expect($apiResource->getPrefix())->toBe('api/v1');
+});
 
-    public function test_prefix_with_api_slash_is_preserved(): void
-    {
-        $apiResource = new ApiResource(prefix: 'api/v1');
+test('prefix with api slash is preserved', function (): void {
+    $apiResource = new ApiResource(prefix: 'api/v1');
 
-        $this->assertEquals('api/v1', $apiResource->getPrefix());
-    }
+    expect($apiResource->getPrefix())->toBe('api/v1');
+});
 
-    public function test_explicit_api_prefix_returns_api(): void
-    {
-        $apiResource = new ApiResource(prefix: 'api');
+test('explicit api prefix returns api', function (): void {
+    $apiResource = new ApiResource(prefix: 'api');
 
-        $this->assertEquals('api', $apiResource->getPrefix());
-    }
+    expect($apiResource->getPrefix())->toBe('api');
+});
 
-    public function test_complex_prefix_gets_api_prepended(): void
-    {
-        $apiResource = new ApiResource(prefix: 'v2/admin');
+test('complex prefix gets api prepended', function (): void {
+    $apiResource = new ApiResource(prefix: 'v2/admin');
 
-        $this->assertEquals('api/v2/admin', $apiResource->getPrefix());
-    }
+    expect($apiResource->getPrefix())->toBe('api/v2/admin');
+});
 
-    public function test_prefix_with_leading_slash_is_handled(): void
-    {
-        $apiResource = new ApiResource(prefix: '/v1');
+test('prefix with leading slash is handled', function (): void {
+    $apiResource = new ApiResource(prefix: '/v1');
 
-        $this->assertEquals('api/v1', $apiResource->getPrefix());
-    }
-}
+    expect($apiResource->getPrefix())->toBe('api/v1');
+});

@@ -307,7 +307,7 @@ class ApiQueryService
         try {
             $connection = $model->getConnection();
             $table = $model->getTable();
-            $columns = $connection->getSchemaBuilder()->getColumnListing($table);
+            $columns = once(fn () => $connection->getSchemaBuilder()->getColumnListing($table));
 
             return in_array($field, $columns, true);
         } catch (Exception) {
