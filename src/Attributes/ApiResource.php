@@ -148,7 +148,7 @@ class ApiResource
             return $this->paginationType;
         }
 
-        $configType = config('volcanic.default_pagination_type', PaginationType::PAGINATE);
+        $configType = config('volcanic.default_pagination_type', PaginationType::LENGTH_AWARE);
 
         // If config returns a string (for backward compatibility), convert it to enum
         if (is_string($configType)) {
@@ -156,7 +156,7 @@ class ApiResource
         }
 
         // If config returns enum directly, use it
-        return $configType instanceof PaginationType ? $configType : PaginationType::PAGINATE;
+        return $configType instanceof PaginationType ? $configType : PaginationType::LENGTH_AWARE;
     }
 
     /**

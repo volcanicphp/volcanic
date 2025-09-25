@@ -41,7 +41,7 @@ class ApiController extends Controller
 
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
-        $data = $apiConfig->paginate
+        $data = $apiConfig->paginate || $request->boolean('paginate', true)
             ? $this->paginationService->paginate($query, $apiConfig, $request)
             : $query->get();
 

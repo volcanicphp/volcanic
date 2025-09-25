@@ -25,9 +25,9 @@ class PaginationService
         $paginationType = $apiConfig->getPaginationType();
 
         return match ($paginationType) {
-            PaginationType::SIMPLE_PAGINATE => $this->applySimplePagination($query, $perPage, $request),
-            PaginationType::CURSOR_PAGINATE => $this->applyCursorPagination($query, $perPage, $request),
-            PaginationType::PAGINATE => $this->applyLengthAwarePagination($query, $perPage, $request),
+            PaginationType::SIMPLE => $this->applySimplePagination($query, $perPage, $request),
+            PaginationType::CURSOR => $this->applyCursorPagination($query, $perPage, $request),
+            PaginationType::LENGTH_AWARE => $this->applyLengthAwarePagination($query, $perPage, $request),
         };
     }
 

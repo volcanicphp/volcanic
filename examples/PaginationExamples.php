@@ -13,7 +13,7 @@ use Volcanic\Enums\PaginationType;
  * Best for: Product catalogs where users need page numbers and total count
  */
 #[ApiResource(
-    paginationType: PaginationType::PAGINATE,
+    paginationType: PaginationType::LENGTH_AWARE,
     perPage: 24, // Standard product grid (4x6)
     sortable: ['name', 'price', 'created_at'],
     filterable: ['category_id', 'brand_id', 'in_stock'],
@@ -41,7 +41,7 @@ class ProductExample extends Model
  * Best for: Log files where total count is not needed and performance is key
  */
 #[ApiResource(
-    paginationType: PaginationType::SIMPLE_PAGINATE,
+    paginationType: PaginationType::SIMPLE,
     perPage: 100,
     sortable: ['created_at', 'level'],
     filterable: ['level', 'context'],
@@ -67,7 +67,7 @@ class LogEntryExample extends Model
  * Best for: Real-time feeds where consistency during pagination is crucial
  */
 #[ApiResource(
-    paginationType: PaginationType::CURSOR_PAGINATE,
+    paginationType: PaginationType::CURSOR,
     perPage: 50,
     sortable: ['sent_at', 'id'],
     filterable: ['user_id', 'channel_id'],

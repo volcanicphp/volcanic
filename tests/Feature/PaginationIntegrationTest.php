@@ -44,7 +44,7 @@ it('pagination service works with different types', function (): void {
     $service = new PaginationService;
 
     // Test length-aware pagination
-    $apiConfig = new ApiResource(paginationType: PaginationType::PAGINATE, perPage: 10);
+    $apiConfig = new ApiResource(paginationType: PaginationType::LENGTH_AWARE, perPage: 10);
     $request = Request::create('/');
     $query = PaginatedModel::query();
     $result = $service->paginate($query, $apiConfig, $request);
@@ -54,7 +54,7 @@ it('pagination service works with different types', function (): void {
     expect($result->total())->toBe(50);
 
     // Test simple pagination
-    $apiConfig = new ApiResource(paginationType: PaginationType::SIMPLE_PAGINATE, perPage: 15);
+    $apiConfig = new ApiResource(paginationType: PaginationType::SIMPLE, perPage: 15);
     $query = PaginatedModel::query();
     $result = $service->paginate($query, $apiConfig, $request);
 
@@ -62,7 +62,7 @@ it('pagination service works with different types', function (): void {
     expect($result->perPage())->toBe(15);
 
     // Test cursor pagination
-    $apiConfig = new ApiResource(paginationType: PaginationType::CURSOR_PAGINATE, perPage: 20);
+    $apiConfig = new ApiResource(paginationType: PaginationType::CURSOR, perPage: 20);
     $query = PaginatedModel::query();
     $result = $service->paginate($query, $apiConfig, $request);
 
@@ -74,7 +74,7 @@ it('pagination service respects page parameters', function (): void {
     $service = new PaginationService;
 
     // Test page parameter with length-aware pagination
-    $apiConfig = new ApiResource(paginationType: PaginationType::PAGINATE, perPage: 10);
+    $apiConfig = new ApiResource(paginationType: PaginationType::LENGTH_AWARE, perPage: 10);
     $request = Request::create('/', 'GET', ['page' => 3]);
     $query = PaginatedModel::query();
     $result = $service->paginate($query, $apiConfig, $request);
@@ -88,7 +88,7 @@ it('pagination service handles cursor columns correctly', function (): void {
     $service = new PaginationService;
 
     // Test with custom cursor column
-    $apiConfig = new ApiResource(paginationType: PaginationType::CURSOR_PAGINATE, perPage: 10);
+    $apiConfig = new ApiResource(paginationType: PaginationType::CURSOR, perPage: 10);
     $request = Request::create('/', 'GET', ['cursor_column' => 'priority']);
     $query = PaginatedModel::query();
     $result = $service->paginate($query, $apiConfig, $request);

@@ -6,9 +6,11 @@ namespace Volcanic\Enums;
 
 enum PaginationType: string
 {
-    case PAGINATE = 'paginate';
-    case SIMPLE_PAGINATE = 'simplePaginate';
-    case CURSOR_PAGINATE = 'cursorPaginate';
+    case LENGTH_AWARE = 'paginate';
+
+    case SIMPLE = 'simplePaginate';
+
+    case CURSOR = 'cursorPaginate';
 
     /**
      * Get all available pagination type values.
@@ -24,9 +26,9 @@ enum PaginationType: string
     public function description(): string
     {
         return match ($this) {
-            self::PAGINATE => 'Length-aware pagination with total count',
-            self::SIMPLE_PAGINATE => 'Simple pagination without total count',
-            self::CURSOR_PAGINATE => 'Cursor-based pagination for large datasets',
+            self::LENGTH_AWARE => 'Length-aware pagination with total count',
+            self::SIMPLE => 'Simple pagination without total count',
+            self::CURSOR => 'Cursor-based pagination for large datasets',
         };
     }
 
@@ -35,7 +37,7 @@ enum PaginationType: string
      */
     public static function default(): self
     {
-        return self::PAGINATE;
+        return self::LENGTH_AWARE;
     }
 
     /**

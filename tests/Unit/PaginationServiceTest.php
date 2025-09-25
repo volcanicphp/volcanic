@@ -57,7 +57,7 @@ it('applies length-aware pagination by default', function (): void {
 it('applies simple pagination when configured', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::SIMPLE_PAGINATE,
+        paginationType: PaginationType::SIMPLE,
         perPage: 15
     );
     $request = new Request;
@@ -76,7 +76,7 @@ it('applies simple pagination when configured', function (): void {
 it('applies cursor pagination when configured', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::CURSOR_PAGINATE,
+        paginationType: PaginationType::CURSOR,
         perPage: 20
     );
     $request = new Request;
@@ -93,7 +93,7 @@ it('applies cursor pagination when configured', function (): void {
 it('uses custom cursor column when provided', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::CURSOR_PAGINATE,
+        paginationType: PaginationType::CURSOR,
         perPage: 10
     );
     $request = new Request(['cursor_column' => 'sort_order']);
@@ -109,7 +109,7 @@ it('uses custom cursor column when provided', function (): void {
 it('falls back to model key when invalid cursor column is provided', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::CURSOR_PAGINATE,
+        paginationType: PaginationType::CURSOR,
         perPage: 10
     );
     $request = new Request(['cursor_column' => 'invalid_column']);
@@ -138,7 +138,7 @@ it('respects page parameter for length-aware pagination', function (): void {
 it('respects page parameter for simple pagination', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::SIMPLE_PAGINATE,
+        paginationType: PaginationType::SIMPLE,
         perPage: 10
     );
     $request = new Request(['page' => 3]);
@@ -175,7 +175,7 @@ it('returns supported pagination types', function (): void {
 it('maintains existing order by clauses for cursor pagination', function (): void {
     $apiConfig = new ApiResource(
         paginate: true,
-        paginationType: PaginationType::CURSOR_PAGINATE,
+        paginationType: PaginationType::CURSOR,
         perPage: 10
     );
     $request = new Request;

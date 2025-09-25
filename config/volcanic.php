@@ -59,7 +59,7 @@ return [
     | Uses the PaginationType enum for type safety.
     |
     */
-    'default_pagination_type' => PaginationType::PAGINATE,
+    'default_pagination_type' => PaginationType::LENGTH_AWARE,
 
     /*
     |--------------------------------------------------------------------------

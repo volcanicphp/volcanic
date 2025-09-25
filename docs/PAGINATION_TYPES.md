@@ -14,7 +14,7 @@ This is the default pagination type that provides full pagination information in
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::PAGINATE, // Explicit enum usage (optional, this is the default)
+    paginationType: PaginationType::LENGTH_AWARE, // Explicit enum usage (optional, this is the default)
     perPage: 15
 )]
 class Product extends Model
@@ -57,7 +57,7 @@ Provides pagination without calculating the total record count, making it faster
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::SIMPLE_PAGINATE,
+    paginationType: PaginationType::SIMPLE,
     perPage: 20
 )]
 class LogEntry extends Model
@@ -98,7 +98,7 @@ Uses cursor-based pagination for consistent results even when data is being inse
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::CURSOR_PAGINATE,
+    paginationType: PaginationType::CURSOR,
     perPage: 25
 )]
 class Message extends Model
@@ -138,7 +138,7 @@ use Volcanic\Enums\PaginationType;
 return [
     // Other configuration...
 
-    'default_pagination_type' => PaginationType::PAGINATE, // Type-safe enum usage
+    'default_pagination_type' => PaginationType::LENGTH_AWARE, // Type-safe enum usage
 ];
 ```
 
@@ -158,7 +158,7 @@ Override the global default for specific models using the enum:
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::CURSOR_PAGINATE,
+    paginationType: PaginationType::CURSOR,
     perPage: 50
 )]
 class HighVolumeModel extends Model
@@ -232,7 +232,7 @@ class StaticData extends Model
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::PAGINATE,
+    paginationType: PaginationType::LENGTH_AWARE,
     perPage: 24 // Standard product grid
 )]
 class Product extends Model
@@ -247,7 +247,7 @@ class Product extends Model
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::SIMPLE_PAGINATE,
+    paginationType: PaginationType::SIMPLE,
     perPage: 100 // Process logs in batches
 )]
 class ApplicationLog extends Model
@@ -262,7 +262,7 @@ class ApplicationLog extends Model
 use Volcanic\Enums\PaginationType;
 
 #[ApiResource(
-    paginationType: PaginationType::CURSOR_PAGINATE,
+    paginationType: PaginationType::CURSOR,
     perPage: 50 // Smooth scrolling experience
 )]
 class ChatMessage extends Model
@@ -284,5 +284,5 @@ To optimize performance, consider updating models with large datasets to use `si
 // After (optimized with enum)
 use Volcanic\Enums\PaginationType;
 
-#[ApiResource(paginationType: PaginationType::SIMPLE_PAGINATE, perPage: 15)]
+#[ApiResource(paginationType: PaginationType::SIMPLE, perPage: 15)]
 ```
