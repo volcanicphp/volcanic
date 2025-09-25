@@ -35,7 +35,7 @@ class ApiController extends Controller
         $query = $this->queryService->buildQuery($modelClass, $apiConfig, $request);
 
         $data = $apiConfig->paginate
-            ? $query->paginate($apiConfig->perPage)
+            ? $query->paginate($apiConfig->getPerPage())
             : $query->get();
 
         try {
