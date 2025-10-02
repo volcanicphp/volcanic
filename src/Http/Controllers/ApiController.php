@@ -6,6 +6,7 @@ namespace Volcanic\Http\Controllers;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorObject;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use LogicException;
+use Throwable;
 use Volcanic\Attributes\ApiResource;
-use Volcanic\Exceptions\InvalidParameterException;
 use Volcanic\Services\ApiQueryService;
 use Volcanic\Services\PaginationService;
 
@@ -208,15 +209,9 @@ class ApiController extends Controller
         $query = $modelClass::query();
         $model = $query->getModel();
 
-        $expectedType = in_array($model->getKeyType(), ['int', 'integer'], true) ? 'numeric' : 'string';
-
-        $validator = Validator::make([$model->getKeyName() => $id], [
-            $model->getKeyName() => $expectedType,
-        ]);
-
-        if ($validator->fails()) {
-            throw new InvalidParameterException($model->getKeyName(), $expectedType, $id);
-        }
+        // Validate ID format BEFORE querying to prevent SQL errors on type-safe databases
+        // (e.g., PostgreSQL "invalid input syntax for type integer/uuid" errors)
+        $this->validateIdFormatOrFail($id, $model);
 
         if ($apiConfig->isSoftDeletesEnabled() && method_exists($modelClass, 'withTrashed')) {
             $query = $query->withTrashed();
@@ -233,15 +228,9 @@ class ApiController extends Controller
         $query = $modelClass::query();
         $model = $query->getModel();
 
-        $expectedType = in_array($model->getKeyType(), ['int', 'integer'], true) ? 'numeric' : 'string';
-
-        $validator = Validator::make([$model->getKeyName() => $id], [
-            $model->getKeyName() => $expectedType,
-        ]);
-
-        if ($validator->fails()) {
-            throw new InvalidParameterException($model->getKeyName(), $expectedType, $id);
-        }
+        // Validate ID format BEFORE querying to prevent SQL errors on type-safe databases
+        // (e.g., PostgreSQL "invalid input syntax for type integer/uuid" errors)
+        $this->validateIdFormatOrFail($id, $model);
 
         if (method_exists($modelClass, 'onlyTrashed')) {
             $query = $query->onlyTrashed();
@@ -306,5 +295,66 @@ class ApiController extends Controller
     protected function forceJsonResponse(Request $request): void
     {
         $request->headers->set('Accept', 'application/json');
+    }
+
+    /**
+     * Validate ID format to prevent SQL type casting errors on type-safe databases.
+     *
+     * This validation is only applied for databases that strictly enforce type safety
+     * (PostgreSQL, SQL Server). SQLite and MySQL are more lenient and will handle
+     * type coercion gracefully, so validation is skipped for those drivers.
+     */
+    protected function validateIdFormatOrFail(string $id, Model $model): void
+    {
+        $connection = $model->getConnection();
+        $driver = $connection->getDriverName();
+
+        // Only validate for type-safe databases that throw SQL errors on type mismatches
+        if (! in_array($driver, ['pgsql', 'sqlsrv'], true)) {
+            return;
+        }
+
+        $keyName = $model->getKeyName();
+        $table = $model->getTable();
+
+        try {
+            $columnType = $connection->getSchemaBuilder()->getColumnType($table, $keyName);
+
+            // Validate based on actual database column type
+            match ($columnType) {
+                'serial', 'bigserial',
+                'integer', 'bigint', 'smallint',
+                'int2', 'int4', 'int8' => $this->validateNumericId($id, $model::class),
+                'guid', 'uuid', 'uniqueidentifier' => $this->validateUuidId($id, $model::class),
+                default => null, // String and other types don't require validation
+            };
+        } catch (ModelNotFoundException $e) {
+            throw $e;
+        } catch (Throwable) {
+            // If we can't determine the column type, skip validation
+            // This handles edge cases where schema inspection fails
+        }
+    }
+
+    /**
+     * Validate that the ID is numeric.
+     */
+    protected function validateNumericId(string $id, string $model): void
+    {
+        if (! is_numeric($id)) {
+            throw resolve(ModelNotFoundException::class)->setModel($model, $id);
+        }
+    }
+
+    /**
+     * Validate that the ID is a valid UUID.
+     */
+    protected function validateUuidId(string $id, string $model): void
+    {
+        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+
+        if (preg_match($pattern, $id) !== 1) {
+            throw resolve(ModelNotFoundException::class)->setModel($model, $id);
+        }
     }
 }
