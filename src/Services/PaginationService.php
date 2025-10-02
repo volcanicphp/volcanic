@@ -21,7 +21,7 @@ class PaginationService
      */
     public function paginate(Builder $query, ApiResource $apiConfig, Request $request): LengthAwarePaginator|Paginator|CursorPaginator
     {
-        $perPage = $apiConfig->getPerPage();
+        $perPage = $this->getPerPage($apiConfig, $request);
         $paginationType = $apiConfig->getPaginationType();
 
         return match ($paginationType) {
@@ -29,6 +29,27 @@ class PaginationService
             PaginationType::CURSOR => $this->applyCursorPagination($query, $perPage, $request),
             PaginationType::LENGTH_AWARE => $this->applyLengthAwarePagination($query, $perPage, $request),
         };
+    }
+
+    /**
+     * Get the per page value, prioritizing request parameter over config.
+     */
+    protected function getPerPage(ApiResource $apiConfig, Request $request): int
+    {
+        $requestPerPage = $request->input('per_page');
+
+        // Prioritize request parameter if present and valid
+        if ($requestPerPage !== null && is_numeric($requestPerPage)) {
+            $perPage = (int) $requestPerPage;
+
+            // Apply reasonable bounds (minimum 1, maximum from config)
+            $maxPerPage = config('volcanic.max_per_page', 100);
+
+            return max(1, min($perPage, $maxPerPage));
+        }
+
+        // Fall back to config value
+        return $apiConfig->getPerPage();
     }
 
     /**

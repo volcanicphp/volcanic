@@ -52,6 +52,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Maximum Per Page Limit
+    |--------------------------------------------------------------------------
+    |
+    | The maximum number of items that can be requested per page via the
+    | ?per_page query parameter. This prevents excessive memory usage and
+    | protects against performance issues from overly large page sizes.
+    |
+    */
+    'max_per_page' => 100,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Pagination Type
     |--------------------------------------------------------------------------
     |

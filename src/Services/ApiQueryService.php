@@ -83,6 +83,12 @@ class ApiQueryService
                 'in' => $this->applyInFilter($query, $field, $value),
                 'not_in' => $this->applyNotInFilter($query, $field, $value),
                 'between' => $this->applyBetweenFilter($query, $field, $value),
+                'is_null' => $this->applyIsNullFilter($query, $field, $value),
+                'not_null' => $this->applyNotNullFilter($query, $field, $value),
+                'contains' => $this->applyContainsFilter($query, $field, $value),
+                'not_contains' => $this->applyNotContainsFilter($query, $field, $value),
+                'starts_with' => $this->applyStartsWithFilter($query, $field, $value),
+                'ends_with' => $this->applyEndsWithFilter($query, $field, $value),
                 default => $query->where($field, $value),
             };
         }
@@ -128,6 +134,72 @@ class ApiQueryService
             if (count($range) === 2) {
                 $query->whereBetween($field, [$range[0], $range[1]]);
             }
+        }
+    }
+
+    /**
+     * Apply IS NULL filter to the query.
+     */
+    protected function applyIsNullFilter(Builder $query, string $field, mixed $value): void
+    {
+        // Value can be truthy (1, true, 'true', 'yes') or just presence of parameter
+        $shouldBeNull = in_array(strtolower((string) $value), ['1', 'true', 'yes', ''], true) || $value === true || $value === 1;
+
+        if ($shouldBeNull) {
+            $query->whereNull($field);
+        }
+    }
+
+    /**
+     * Apply NOT NULL filter to the query.
+     */
+    protected function applyNotNullFilter(Builder $query, string $field, mixed $value): void
+    {
+        // Value can be truthy (1, true, 'true', 'yes') or just presence of parameter
+        $shouldNotBeNull = in_array(strtolower((string) $value), ['1', 'true', 'yes', ''], true) || $value === true || $value === 1;
+
+        if ($shouldNotBeNull) {
+            $query->whereNotNull($field);
+        }
+    }
+
+    /**
+     * Apply CONTAINS filter to the query (case-insensitive LIKE %value%).
+     */
+    protected function applyContainsFilter(Builder $query, string $field, mixed $value): void
+    {
+        if ($value !== null && $value !== '') {
+            $query->where($field, 'LIKE', "%{$value}%");
+        }
+    }
+
+    /**
+     * Apply NOT CONTAINS filter to the query (case-insensitive NOT LIKE %value%).
+     */
+    protected function applyNotContainsFilter(Builder $query, string $field, mixed $value): void
+    {
+        if ($value !== null && $value !== '') {
+            $query->where($field, 'NOT LIKE', "%{$value}%");
+        }
+    }
+
+    /**
+     * Apply STARTS WITH filter to the query (case-insensitive LIKE value%).
+     */
+    protected function applyStartsWithFilter(Builder $query, string $field, mixed $value): void
+    {
+        if ($value !== null && $value !== '') {
+            $query->where($field, 'LIKE', "{$value}%");
+        }
+    }
+
+    /**
+     * Apply ENDS WITH filter to the query (case-insensitive LIKE %value).
+     */
+    protected function applyEndsWithFilter(Builder $query, string $field, mixed $value): void
+    {
+        if ($value !== null && $value !== '') {
+            $query->where($field, 'LIKE', "%{$value}");
         }
     }
 
