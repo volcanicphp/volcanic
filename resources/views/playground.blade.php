@@ -4,24 +4,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Volcanic API Playground</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            [x-cloak] {
-                display: none !important;
-            }
-
-            .monaco-editor-container {
-                border: 1px solid #e5e7eb;
-                border-radius: 0.375rem;
-            }
-
-            .autocomplete-dropdown {
-                max-height: 300px;
-                overflow-y: auto;
-            }
-        </style>
+        <link rel="stylesheet" href="{{ asset('volcanic/playgroundStyles.css') }}">
+        <script src="{{ asset('volcanic/playground.js') }}" defer></script>
     </head>
     <body class="bg-gray-50">
         <div x-data="playground()" x-init="init()" class="min-h-screen">
@@ -63,7 +47,7 @@
                                 <h2 class="font-semibold text-gray-700">API Routes</h2>
                             </div>
                             <div class="max-h-96 overflow-y-auto">
-                                <template x-for="route in filteredRoutes" :key="route.uri + route.method">
+                                <template x-for="(route, routeIndex) in filteredRoutes" :key="'route-' + routeIndex">
                                     <div @click="selectRoute(route)"
                                         :class="selectedRoute?.uri === route.uri && selectedRoute?.method === route.method ? 'bg-orange-50 border-l-4 border-orange-500' : 'hover:bg-gray-50'"
                                         class="px-4 py-3 border-b border-gray-100 cursor-pointer transition-colors">
@@ -94,7 +78,7 @@
                                 <h2 class="font-semibold text-gray-700">Models</h2>
                             </div>
                             <div class="max-h-64 overflow-y-auto">
-                                <template x-for="model in schema.models" :key="model.class">
+                                <template x-for="(model, modelIndex) in schema.models" :key="'model-' + modelIndex">
                                     <div @click="selectedModel = selectedModel?.class === model.class ? null : model"
                                         class="px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors">
                                         <div class="flex items-center justify-between">
@@ -109,7 +93,7 @@
                                         <div x-show="selectedModel?.class === model.class" x-cloak
                                             class="mt-3 space-y-1">
                                             <div class="text-xs text-gray-500 mb-2">Fields:</div>
-                                            <template x-for="field in model.fields" :key="field.name">
+                                            <template x-for="(field, fieldIndex) in model.fields" :key="'field-' + modelIndex + '-' + fieldIndex">
                                                 <div
                                                     class="flex items-center justify-between text-xs py-1 px-2 bg-gray-50 rounded">
                                                     <span class="font-mono text-gray-700" x-text="field.name"></span>
@@ -148,7 +132,7 @@
                                         <!-- Autocomplete Dropdown -->
                                         <div x-show="showAutocomplete && autocompleteResults.length > 0" x-cloak
                                             class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg autocomplete-dropdown">
-                                            <template x-for="result in autocompleteResults" :key="result.uri">
+                                            <template x-for="(result, resultIndex) in autocompleteResults" :key="'autocomplete-' + resultIndex">
                                                 <div @click="selectAutocomplete(result)"
                                                     class="px-4 py-2 hover:bg-orange-50 cursor-pointer border-b border-gray-100 last:border-b-0">
                                                     <div class="flex items-center space-x-2">
@@ -380,205 +364,5 @@
                 </div>
             </div>
         </div>
-
-        <script>
-            function playground() {
-                return {
-                    schema: {
-                        routes: [],
-                        models: []
-                    },
-                    searchQuery: '',
-                    filteredRoutes: [],
-                    autocompleteResults: [],
-                    showAutocomplete: false,
-                    selectedRoute: null,
-                    selectedModel: null,
-                    activeTab: 'params',
-                    responseTab: 'body',
-                    loading: false,
-                    request: {
-                        method: 'GET',
-                        url: '',
-                        params: [],
-                        headers: [
-                            { key: 'Accept', value: 'application/json' },
-                            { key: 'Content-Type', value: 'application/json' }
-                        ],
-                        auth: {
-                            type: 'none',
-                            token: '',
-                            username: '',
-                            password: ''
-                        },
-                        bodyType: 'json',
-                        body: '',
-                        formData: []
-                    },
-                    response: null,
-
-                    async init() {
-                        await this.loadSchema();
-                        this.filterRoutes();
-                    },
-
-                    async loadSchema() {
-                        try {
-                            const response = await fetch('/volcanic/playground/schema');
-                            this.schema = await response.json();
-                            this.filterRoutes();
-                        } catch (error) {
-                            console.error('Failed to load schema:', error);
-                        }
-                    },
-
-                    filterRoutes() {
-                        if (!this.searchQuery) {
-                            this.filteredRoutes = this.schema.routes || [];
-                            return;
-                        }
-
-                        const query = this.searchQuery.toLowerCase();
-                        this.filteredRoutes = (this.schema.routes || []).filter(route =>
-                            route.uri.toLowerCase().includes(query) ||
-                            route.method.toLowerCase().includes(query) ||
-                            (route.name && route.name.toLowerCase().includes(query))
-                        );
-                    },
-
-                    filterAutocomplete() {
-                        if (!this.request.url) {
-                            this.autocompleteResults = this.schema.routes || [];
-                            return;
-                        }
-
-                        const query = this.request.url.toLowerCase();
-                        this.autocompleteResults = (this.schema.routes || []).filter(route =>
-                            route.uri.toLowerCase().includes(query)
-                        ).slice(0, 10);
-                    },
-
-                    selectAutocomplete(route) {
-                        this.request.url = route.uri;
-                        this.request.method = route.method;
-                        this.showAutocomplete = false;
-                        this.selectedRoute = route;
-                    },
-
-                    selectRoute(route) {
-                        this.selectedRoute = route;
-                        this.request.url = route.uri;
-                        this.request.method = route.method;
-                    },
-
-                    async sendRequest() {
-                        this.loading = true;
-                        const startTime = performance.now();
-
-                        try {
-                            // Build URL with query params
-                            let url = this.request.url;
-                            const params = this.request.params.filter(p => p.key && p.value);
-                            if (params.length > 0) {
-                                const queryString = params.map(p =>
-                                    `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
-                                ).join('&');
-                                url += (url.includes('?') ? '&' : '?') + queryString;
-                            }
-
-                            // Build headers
-                            const headers = {};
-                            this.request.headers.forEach(h => {
-                                if (h.key && h.value) {
-                                    headers[h.key] = h.value;
-                                }
-                            });
-
-                            // Add authorization
-                            if (this.request.auth.type === 'bearer' && this.request.auth.token) {
-                                headers['Authorization'] = `Bearer ${this.request.auth.token}`;
-                            } else if (this.request.auth.type === 'basic' && this.request.auth.username) {
-                                const credentials = btoa(`${this.request.auth.username}:${this.request.auth.password}`);
-                                headers['Authorization'] = `Basic ${credentials}`;
-                            }
-
-                            // Build body
-                            let body = null;
-                            if (['POST', 'PUT', 'PATCH'].includes(this.request.method)) {
-                                if (this.request.bodyType === 'json') {
-                                    body = this.request.body;
-                                } else {
-                                    const formData = {};
-                                    this.request.formData.forEach(f => {
-                                        if (f.key && f.value) {
-                                            formData[f.key] = f.value;
-                                        }
-                                    });
-                                    body = JSON.stringify(formData);
-                                }
-                            }
-
-                            // Make request
-                            const fetchOptions = {
-                                method: this.request.method,
-                                headers: headers
-                            };
-
-                            if (body) {
-                                fetchOptions.body = body;
-                            }
-
-                            const response = await fetch(url, fetchOptions);
-                            const endTime = performance.now();
-
-                            // Parse response
-                            let data;
-                            const contentType = response.headers.get('content-type');
-                            if (contentType && contentType.includes('application/json')) {
-                                data = await response.json();
-                            } else {
-                                data = await response.text();
-                            }
-
-                            // Extract headers
-                            const responseHeaders = {};
-                            response.headers.forEach((value, key) => {
-                                responseHeaders[key] = value;
-                            });
-
-                            this.response = {
-                                status: response.status,
-                                statusText: response.statusText,
-                                time: Math.round(endTime - startTime),
-                                data: data,
-                                headers: responseHeaders
-                            };
-                        } catch (error) {
-                            const endTime = performance.now();
-                            this.response = {
-                                status: 0,
-                                statusText: 'Error',
-                                time: Math.round(endTime - startTime),
-                                data: { error: error.message },
-                                headers: {}
-                            };
-                        } finally {
-                            this.loading = false;
-                        }
-                    },
-
-                    formatJSON(data) {
-                        if (typeof data === 'string') {
-                            try {
-                                data = JSON.parse(data);
-                            } catch (e) {
-                                return data;
-                            }
-                        }
-                        return JSON.stringify(data, null, 2);
-                    }
-                };
-            }
-        </script>
     </body>
 </html>
