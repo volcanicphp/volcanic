@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 /* Import Font Awesome */
-@import '@fortawesome/fontawesome-free/css/all.css';
+@import "@fortawesome/fontawesome-free/css/all.css";
 
 /* Custom styles for playground */
-[x-cloak] { 
-    display: none !important; 
+[x-cloak] {
+    display: none !important;
 }
 
 .autocomplete-dropdown {
@@ -34,5 +34,6 @@
 
 /* Code block styling */
 pre {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro",
+        monospace;
 }

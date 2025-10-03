@@ -1,26 +1,29 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from "vite";
+import { resolve } from "path";
 
 export default defineConfig({
     build: {
-        outDir: 'public/volcanic',
+        outDir: "public/volcanic",
         emptyOutDir: true,
         manifest: true,
         rollupOptions: {
             input: {
-                playground: resolve(__dirname, 'resources/js/playground.js'),
-                playgroundStyles: resolve(__dirname, 'resources/css/playground.css'),
+                playground: resolve(__dirname, "resources/js/playground.js"),
+                playgroundStyles: resolve(
+                    __dirname,
+                    "resources/css/playground.css"
+                ),
             },
             output: {
-                entryFileNames: '[name].js',
-                chunkFileNames: '[name].js',
-                assetFileNames: '[name].[ext]'
-            }
+                entryFileNames: "[name].js",
+                chunkFileNames: "[name].js",
+                assetFileNames: "[name].[ext]",
+            },
         },
     },
     resolve: {
         alias: {
-            '@': resolve(__dirname, 'resources'),
+            "@": resolve(__dirname, "resources"),
         },
     },
 });

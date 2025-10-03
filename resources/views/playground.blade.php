@@ -93,7 +93,8 @@
                                         <div x-show="selectedModel?.class === model.class" x-cloak
                                             class="mt-3 space-y-1">
                                             <div class="text-xs text-gray-500 mb-2">Fields:</div>
-                                            <template x-for="(field, fieldIndex) in model.fields" :key="'field-' + modelIndex + '-' + fieldIndex">
+                                            <template x-for="(field, fieldIndex) in model.fields"
+                                                :key="'field-' + modelIndex + '-' + fieldIndex">
                                                 <div
                                                     class="flex items-center justify-between text-xs py-1 px-2 bg-gray-50 rounded">
                                                     <span class="font-mono text-gray-700" x-text="field.name"></span>
@@ -132,7 +133,8 @@
                                         <!-- Autocomplete Dropdown -->
                                         <div x-show="showAutocomplete && autocompleteResults.length > 0" x-cloak
                                             class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg autocomplete-dropdown">
-                                            <template x-for="(result, resultIndex) in autocompleteResults" :key="'autocomplete-' + resultIndex">
+                                            <template x-for="(result, resultIndex) in autocompleteResults"
+                                                :key="'autocomplete-' + resultIndex">
                                                 <div @click="selectAutocomplete(result)"
                                                     class="px-4 py-2 hover:bg-orange-50 cursor-pointer border-b border-gray-100 last:border-b-0">
                                                     <div class="flex items-center space-x-2">

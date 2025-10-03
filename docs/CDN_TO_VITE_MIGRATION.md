@@ -11,6 +11,7 @@ January 2025
 ## Problem Statement
 
 The playground was loading Alpine.js, Tailwind CSS, and Font Awesome from CDNs, which caused:
+
 1. **Alpine.js Warnings**: "Duplicate key on x-for" errors in console
 2. **Production Concerns**: CDN availability and performance unpredictability
 3. **Development Experience**: No control over asset versions or offline development
@@ -32,24 +33,34 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 ### `resources/views/playground.blade.php`
 
 **Before**:
+
 ```html
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        rel="stylesheet"
+    />
 </head>
 <body>
     <!-- ... -->
     <script>
-        function playground() { /* 200+ lines of inline JS */ }
+        function playground() {
+            /* 200+ lines of inline JS */
+        }
     </script>
 </body>
 ```
 
 **After**:
+
 ```html
 <head>
-    <link rel="stylesheet" href="{{ asset('volcanic/playgroundStyles.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ asset('volcanic/playgroundStyles.css') }}"
+    />
     <script src="{{ asset('volcanic/playground.js') }}" defer></script>
 </head>
 <body>
@@ -58,16 +69,18 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 ```
 
 **Changes**:
-- Replaced CDN links with `{{ asset() }}` helper for compiled files
-- Removed entire inline `<script>` block (~213 lines)
-- Fixed Alpine.js duplicate key warnings using indexed keys:
-  - Routes list: `(route, routeIndex)` with `:key="'route-' + routeIndex"`
-  - Models list: `(model, modelIndex)` with `:key="'model-' + modelIndex"`
-  - Autocomplete: `(result, resultIndex)` with `:key="'autocomplete-' + resultIndex"`
+
+-   Replaced CDN links with `{{ asset() }}` helper for compiled files
+-   Removed entire inline `<script>` block (~213 lines)
+-   Fixed Alpine.js duplicate key warnings using indexed keys:
+    -   Routes list: `(route, routeIndex)` with `:key="'route-' + routeIndex"`
+    -   Models list: `(model, modelIndex)` with `:key="'model-' + modelIndex"`
+    -   Autocomplete: `(result, resultIndex)` with `:key="'autocomplete-' + resultIndex"`
 
 ### `.gitignore`
 
 **Added**:
+
 ```gitignore
 # Frontend Assets
 /node_modules
@@ -85,14 +98,14 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 
 ```json
 {
-  "devDependencies": {
-    "vite": "^5.0.0"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.5.0",
-    "alpinejs": "^3.13.0",
-    "tailwindcss": "^4.0.0-beta.1"
-  }
+    "devDependencies": {
+        "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^6.5.0",
+        "alpinejs": "^3.13.0",
+        "tailwindcss": "^4.0.0-beta.1"
+    }
 }
 ```
 
@@ -121,15 +134,23 @@ public/volcanic/
 ### Issue 1: Duplicate Keys
 
 **Before**:
+
 ```html
-<template x-for="route in filteredRoutes" :key="route.uri + route.method">
+<template
+    x-for="route in filteredRoutes"
+    :key="route.uri + route.method"
+></template>
 ```
 
 **Problem**: Multiple routes with same URI+method combination caused duplicate keys
 
 **After**:
+
 ```html
-<template x-for="(route, routeIndex) in filteredRoutes" :key="'route-' + routeIndex">
+<template
+    x-for="(route, routeIndex) in filteredRoutes"
+    :key="'route-' + routeIndex"
+></template>
 ```
 
 **Solution**: Use array index with unique prefix
@@ -137,6 +158,7 @@ public/volcanic/
 ### Issue 2: Undefined Property Access
 
 **Before**:
+
 ```javascript
 schema: { routes: [], models: [] }  // Initialized in init()
 ```
@@ -144,6 +166,7 @@ schema: { routes: [], models: [] }  // Initialized in init()
 **Problem**: Templates accessed properties before `loadSchema()` completed
 
 **After**:
+
 ```javascript
 schema: {
     routes: [],
@@ -158,50 +181,56 @@ schema: {
 Tailwind CSS v4 (currently in beta) simplifies configuration:
 
 ### Old Approach (v3)
+
 ```javascript
 // tailwind.config.js
 module.exports = {
-  content: ['./resources/**/*.blade.php'],
-  theme: { extend: {} },
-  plugins: [],
-}
+    content: ["./resources/**/*.blade.php"],
+    theme: { extend: {} },
+    plugins: [],
+};
 
 // postcss.config.js
 module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+    },
+};
 ```
 
 ### New Approach (v4)
+
 ```css
 /* Just one line in CSS */
 @import "tailwindcss";
 ```
 
 **Benefits**:
-- Zero configuration files
-- Automatic template scanning
-- Built-in optimization
-- Faster build times
+
+-   Zero configuration files
+-   Automatic template scanning
+-   Built-in optimization
+-   Faster build times
 
 ## Developer Workflow
 
 ### Development
+
 ```bash
 npm install      # Install dependencies
 npm run dev      # Start Vite dev server with HMR
 ```
 
 ### Production
+
 ```bash
 npm run build    # Compile to public/volcanic/
 composer test    # Verify tests still pass
 ```
 
 ### Before Release
+
 ```bash
 npm run build               # Rebuild assets
 composer test:all           # Run all quality checks
@@ -219,23 +248,26 @@ Duration: 0.78s
 ```
 
 **Test Coverage**:
-- Unit tests: ApiResourceAttributeTest, SchemaServiceTest
-- Feature tests: PlaygroundIntegrationTest (verifies UI renders)
-- Arch tests: Validate strict types, security presets
+
+-   Unit tests: ApiResourceAttributeTest, SchemaServiceTest
+-   Feature tests: PlaygroundIntegrationTest (verifies UI renders)
+-   Arch tests: Validate strict types, security presets
 
 ## Performance Impact
 
 ### Before (CDN)
-- 3 external HTTP requests
-- Total size: ~200 KB (unoptimized)
-- Latency: Dependent on CDN
-- Cache: Out of control
+
+-   3 external HTTP requests
+-   Total size: ~200 KB (unoptimized)
+-   Latency: Dependent on CDN
+-   Cache: Out of control
 
 ### After (Vite)
-- 2 local HTTP requests
-- Total size: ~65 KB gzipped
-- Latency: Same server as API
-- Cache: Full control via Laravel
+
+-   2 local HTTP requests
+-   Total size: ~65 KB gzipped
+-   Latency: Same server as API
+-   Cache: Full control via Laravel
 
 **Improvement**: ~67% size reduction, predictable performance
 
@@ -248,16 +280,18 @@ Duration: 0.78s
 If issues arise:
 
 1. **Revert Blade Template**:
-   ```bash
-   git checkout HEAD~1 resources/views/playground.blade.php
-   ```
+
+    ```bash
+    git checkout HEAD~1 resources/views/playground.blade.php
+    ```
 
 2. **Remove Build Files**:
-   ```bash
-   rm -rf public/volcanic/
-   rm -rf node_modules/
-   rm package.json vite.config.js
-   ```
+
+    ```bash
+    rm -rf public/volcanic/
+    rm -rf node_modules/
+    rm package.json vite.config.js
+    ```
 
 3. **Restore CDN Links** (manual edit of blade template)
 
@@ -270,26 +304,26 @@ If issues arise:
 
 ## References
 
-- Original Issue: Alpine.js console warnings + CDN concerns
-- Solution: Vite + Tailwind v4 + compiled assets
-- Documentation: `docs/ASSET_COMPILATION.md`
-- Build Config: `vite.config.js`
+-   Original Issue: Alpine.js console warnings + CDN concerns
+-   Solution: Vite + Tailwind v4 + compiled assets
+-   Documentation: `docs/ASSET_COMPILATION.md`
+-   Build Config: `vite.config.js`
 
 ## Checklist
 
-- [x] Fixed Alpine.js duplicate key warnings (3 locations)
-- [x] Created Vite configuration
-- [x] Extracted JavaScript to `resources/js/playground.js`
-- [x] Created CSS file with Tailwind v4
-- [x] Updated blade template to use compiled assets
-- [x] Removed inline script block
-- [x] Removed unnecessary config files (postcss, tailwind)
-- [x] Installed NPM dependencies
-- [x] Built production assets
-- [x] Updated .gitignore
-- [x] All tests passing
-- [x] Code formatted with Pint/Rector
-- [x] Created documentation
+-   [x] Fixed Alpine.js duplicate key warnings (3 locations)
+-   [x] Created Vite configuration
+-   [x] Extracted JavaScript to `resources/js/playground.js`
+-   [x] Created CSS file with Tailwind v4
+-   [x] Updated blade template to use compiled assets
+-   [x] Removed inline script block
+-   [x] Removed unnecessary config files (postcss, tailwind)
+-   [x] Installed NPM dependencies
+-   [x] Built production assets
+-   [x] Updated .gitignore
+-   [x] All tests passing
+-   [x] Code formatted with Pint/Rector
+-   [x] Created documentation
 
 ## Sign-off
 
@@ -300,5 +334,6 @@ If issues arise:
 **Build**: Successful (201ms)
 
 **Asset Sizes**:
-- JavaScript: 47.32 KB (17.07 KB gzipped)
-- CSS: 88.41 KB (27.81 KB gzipped)
+
+-   JavaScript: 47.32 KB (17.07 KB gzipped)
+-   CSS: 88.41 KB (27.81 KB gzipped)

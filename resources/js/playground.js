@@ -1,42 +1,42 @@
-import Alpine from 'alpinejs';
+import Alpine from "alpinejs";
 
 // Start Alpine
 window.Alpine = Alpine;
 Alpine.start();
 
 // Playground component
-window.playground = function() {
+window.playground = function () {
     return {
         schema: {
             routes: [],
-            models: []
+            models: [],
         },
-        searchQuery: '',
+        searchQuery: "",
         filteredRoutes: [],
         autocompleteResults: [],
         showAutocomplete: false,
         selectedRoute: null,
         selectedModel: null,
-        activeTab: 'params',
-        responseTab: 'body',
+        activeTab: "params",
+        responseTab: "body",
         loading: false,
         request: {
-            method: 'GET',
-            url: '',
+            method: "GET",
+            url: "",
             params: [],
             headers: [
-                { key: 'Accept', value: 'application/json' },
-                { key: 'Content-Type', value: 'application/json' }
+                { key: "Accept", value: "application/json" },
+                { key: "Content-Type", value: "application/json" },
             ],
             auth: {
-                type: 'none',
-                token: '',
-                username: '',
-                password: ''
+                type: "none",
+                token: "",
+                username: "",
+                password: "",
             },
-            bodyType: 'json',
-            body: '',
-            formData: []
+            bodyType: "json",
+            body: "",
+            formData: [],
         },
         response: null,
 
@@ -47,11 +47,11 @@ window.playground = function() {
 
         async loadSchema() {
             try {
-                const response = await fetch('/volcanic/playground/schema');
+                const response = await fetch("/volcanic/playground/schema");
                 this.schema = await response.json();
                 this.filterRoutes();
             } catch (error) {
-                console.error('Failed to load schema:', error);
+                console.error("Failed to load schema:", error);
             }
         },
 
@@ -62,10 +62,11 @@ window.playground = function() {
             }
 
             const query = this.searchQuery.toLowerCase();
-            this.filteredRoutes = (this.schema.routes || []).filter(route => 
-                route.uri.toLowerCase().includes(query) ||
-                route.method.toLowerCase().includes(query) ||
-                (route.name && route.name.toLowerCase().includes(query))
+            this.filteredRoutes = (this.schema.routes || []).filter(
+                (route) =>
+                    route.uri.toLowerCase().includes(query) ||
+                    route.method.toLowerCase().includes(query) ||
+                    (route.name && route.name.toLowerCase().includes(query))
             );
         },
 
@@ -76,9 +77,9 @@ window.playground = function() {
             }
 
             const query = this.request.url.toLowerCase();
-            this.autocompleteResults = (this.schema.routes || []).filter(route => 
-                route.uri.toLowerCase().includes(query)
-            ).slice(0, 10);
+            this.autocompleteResults = (this.schema.routes || [])
+                .filter((route) => route.uri.toLowerCase().includes(query))
+                .slice(0, 10);
         },
 
         selectAutocomplete(route) {
@@ -101,38 +102,55 @@ window.playground = function() {
             try {
                 // Build URL with query params
                 let url = this.request.url;
-                const params = this.request.params.filter(p => p.key && p.value);
+                const params = this.request.params.filter(
+                    (p) => p.key && p.value
+                );
                 if (params.length > 0) {
-                    const queryString = params.map(p => 
-                        `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`
-                    ).join('&');
-                    url += (url.includes('?') ? '&' : '?') + queryString;
+                    const queryString = params
+                        .map(
+                            (p) =>
+                                `${encodeURIComponent(
+                                    p.key
+                                )}=${encodeURIComponent(p.value)}`
+                        )
+                        .join("&");
+                    url += (url.includes("?") ? "&" : "?") + queryString;
                 }
 
                 // Build headers
                 const headers = {};
-                this.request.headers.forEach(h => {
+                this.request.headers.forEach((h) => {
                     if (h.key && h.value) {
                         headers[h.key] = h.value;
                     }
                 });
 
                 // Add authorization
-                if (this.request.auth.type === 'bearer' && this.request.auth.token) {
-                    headers['Authorization'] = `Bearer ${this.request.auth.token}`;
-                } else if (this.request.auth.type === 'basic' && this.request.auth.username) {
-                    const credentials = btoa(`${this.request.auth.username}:${this.request.auth.password}`);
-                    headers['Authorization'] = `Basic ${credentials}`;
+                if (
+                    this.request.auth.type === "bearer" &&
+                    this.request.auth.token
+                ) {
+                    headers[
+                        "Authorization"
+                    ] = `Bearer ${this.request.auth.token}`;
+                } else if (
+                    this.request.auth.type === "basic" &&
+                    this.request.auth.username
+                ) {
+                    const credentials = btoa(
+                        `${this.request.auth.username}:${this.request.auth.password}`
+                    );
+                    headers["Authorization"] = `Basic ${credentials}`;
                 }
 
                 // Build body
                 let body = null;
-                if (['POST', 'PUT', 'PATCH'].includes(this.request.method)) {
-                    if (this.request.bodyType === 'json') {
+                if (["POST", "PUT", "PATCH"].includes(this.request.method)) {
+                    if (this.request.bodyType === "json") {
                         body = this.request.body;
                     } else {
                         const formData = {};
-                        this.request.formData.forEach(f => {
+                        this.request.formData.forEach((f) => {
                             if (f.key && f.value) {
                                 formData[f.key] = f.value;
                             }
@@ -144,7 +162,7 @@ window.playground = function() {
                 // Make request
                 const fetchOptions = {
                     method: this.request.method,
-                    headers: headers
+                    headers: headers,
                 };
 
                 if (body) {
@@ -156,8 +174,8 @@ window.playground = function() {
 
                 // Parse response
                 let data;
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
                     data = await response.json();
                 } else {
                     data = await response.text();
@@ -174,16 +192,16 @@ window.playground = function() {
                     statusText: response.statusText,
                     time: Math.round(endTime - startTime),
                     data: data,
-                    headers: responseHeaders
+                    headers: responseHeaders,
                 };
             } catch (error) {
                 const endTime = performance.now();
                 this.response = {
                     status: 0,
-                    statusText: 'Error',
+                    statusText: "Error",
                     time: Math.round(endTime - startTime),
                     data: { error: error.message },
-                    headers: {}
+                    headers: {},
                 };
             } finally {
                 this.loading = false;
@@ -191,7 +209,7 @@ window.playground = function() {
         },
 
         formatJSON(data) {
-            if (typeof data === 'string') {
+            if (typeof data === "string") {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
@@ -199,6 +217,6 @@ window.playground = function() {
                 }
             }
             return JSON.stringify(data, null, 2);
-        }
+        },
     };
 };
