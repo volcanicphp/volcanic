@@ -1,11 +1,18 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
     base: "/vendor/volcanic/",
 
-    plugins: [tailwindcss()],
+    plugins: [react(), tailwindcss()],
+
+    resolve: {
+        alias: {
+            "@": resolve(__dirname, "./resources/js"),
+        },
+    },
 
     build: {
         outDir: "resources/dist",
@@ -13,7 +20,7 @@ export default defineConfig({
         manifest: true,
         rollupOptions: {
             input: {
-                playground: resolve(__dirname, "resources/js/playground.js"),
+                playground: resolve(__dirname, "resources/js/playground.tsx"),
                 playgroundStyles: resolve(
                     __dirname,
                     "resources/css/playground.css"
@@ -24,12 +31,6 @@ export default defineConfig({
                 chunkFileNames: "[name].js",
                 assetFileNames: "[name].[ext]",
             },
-        },
-    },
-
-    resolve: {
-        alias: {
-            "@": resolve(__dirname, "resources"),
         },
     },
 });

@@ -1,41 +1,4 @@
 @import "tailwindcss";
 
 @source '../**/*.blade.php';
-
-/* Import Font Awesome */
-@import "@fortawesome/fontawesome-free/css/all.css";
-
-/* Custom styles for playground */
-[x-cloak] {
-    display: none !important;
-}
-
-.autocomplete-dropdown {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-/* Scrollbar styling */
-.overflow-y-auto::-webkit-scrollbar {
-    width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-/* Code block styling */
-pre {
-    font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro",
-        monospace;
-}
+@source '../**/*.tsx';

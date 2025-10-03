@@ -5,10 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Volcanic API Playground</title>
         <link rel="stylesheet" href="{{ asset('vendor/volcanic/playgroundStyles.css') }}">
-        <script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
+        <script type="module" src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
     </head>
-    <body class="bg-gray-50">
-        <div x-data="playground()" x-init="init()" class="min-h-screen">
+    <body>
+        <div id="volcanic-playground-root">
             <!-- Header -->
             <header class="bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg">
                 <div class="container mx-auto px-4 py-6">
@@ -357,14 +357,6 @@
                                                     x-text="key + ':'"></span>
                                                 <span class="text-gray-600" x-text="value"></span>
                                             </div>
-                                        </template>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </body>
 </html>
