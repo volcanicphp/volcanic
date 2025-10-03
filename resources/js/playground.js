@@ -1,10 +1,6 @@
 import Alpine from "alpinejs";
 
-// Start Alpine
-window.Alpine = Alpine;
-Alpine.start();
-
-// Playground component
+// Define playground component BEFORE starting Alpine
 window.playground = function () {
     return {
         schema: {
@@ -220,3 +216,7 @@ window.playground = function () {
         },
     };
 };
+
+// Start Alpine AFTER defining the playground component
+window.Alpine = Alpine;
+Alpine.start();
