@@ -98,4 +98,19 @@ return [
         app_path('Http/Controllers'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Playground
+    |--------------------------------------------------------------------------
+    |
+    | Enable or disable the API playground. By default, it's enabled in local
+    | and development environments. You can customize access control using
+    | Playground::canAccess() in your AppServiceProvider.
+    |
+    */
+    'playground' => [
+        'enabled' => env('VOLCANIC_PLAYGROUND_ENABLED', true),
+        'route_prefix' => 'volcanic/playground',
+    ],
+
 ];

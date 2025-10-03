@@ -21,6 +21,14 @@ class Volcanic
     }
 
     /**
+     * Register routes for a specific model class.
+     */
+    public function registerModelRoutes(string $modelClass): void
+    {
+        $this->discoveryService->registerModelRoutes($modelClass);
+    }
+
+    /**
      * Get all models that have the API attribute.
      */
     public function getApiModels(): array

@@ -25,6 +25,8 @@ Volcanic is a Laravel package that provides a powerful, attribute-based approach
 -   ✅ **Soft delete handling** with restore and force delete operations
 -   ✅ **Route customization** (prefix, names, operations)
 -   ✅ **Auto-discovery** with manual override options
+-   🆕 **Interactive API Playground** - GraphiQL-like interface for REST APIs
+-   🆕 **Schema Introspection** - Auto-generated API documentation from your models
 
 ## Installation
 
@@ -138,6 +140,45 @@ php artisan volcanic discover
 # Show registered routes
 php artisan volcanic routes
 ```
+
+## API Playground
+
+Volcanic includes a powerful interactive API Playground similar to GraphiQL but for REST APIs. Access it at `/volcanic/playground` in your development environment.
+
+### Quick Start
+
+The playground is automatically enabled in `local` and `development` environments. Simply navigate to:
+
+```
+http://your-app.test/volcanic/playground
+```
+
+### Features
+
+-   🎯 **Interactive Request Builder** - Test endpoints with a Postman-like interface
+-   🔍 **Auto-complete** - Smart suggestions based on your API schema
+-   📊 **Schema Explorer** - Browse all routes and models with their fields
+-   🔐 **Authorization Support** - Configure Bearer tokens and Basic Auth
+-   📝 **Pretty Responses** - Formatted JSON with syntax highlighting
+
+### Configuration
+
+Control playground access in your `AppServiceProvider`:
+
+```php
+use Volcanic\Facades\Playground;
+
+public function boot(): void
+{
+    // Enable for everyone (use with caution!)
+    Playground::canAccess(true);
+
+    // Or use custom logic
+    Playground::canAccess(fn() => auth()->check() && auth()->user()->isAdmin());
+}
+```
+
+For complete documentation, see [API Playground Documentation](docs/API_PLAYGROUND.md).
 
 ## Testing
 
