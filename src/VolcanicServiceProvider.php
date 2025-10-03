@@ -24,6 +24,7 @@ class VolcanicServiceProvider extends PackageServiceProvider
             ->name('volcanic')
             ->hasConfigFile()
             ->hasViews()
+            ->hasAssets()
             ->hasCommand(VolcanicCommand::class);
     }
 

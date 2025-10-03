@@ -4,7 +4,7 @@ composer.lock
 
 # Frontend Assets
 /node_modules
-# Note: public/volcanic/*.{js,css} are committed (compiled assets for package distribution)
+# Note: resources/dist/*.{js,css} are committed (compiled assets for package distribution)
 
 # Logs
 npm-debug.log

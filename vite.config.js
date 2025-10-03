@@ -3,7 +3,7 @@ import { resolve } from "path";
 
 export default defineConfig({
     build: {
-        outDir: "public/volcanic",
+        outDir: "resources/dist",
         emptyOutDir: true,
         manifest: true,
         rollupOptions: {

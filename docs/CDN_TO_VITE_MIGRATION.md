@@ -23,7 +23,7 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 ## Files Created
 
 1. **`package.json`** - NPM dependencies (Vite, Alpine.js, Tailwind v4, Font Awesome)
-2. **`vite.config.js`** - Vite build configuration targeting `public/volcanic/`
+2. **`vite.config.js`** - Vite build configuration targeting `resources/dist/`
 3. **`resources/js/playground.js`** - Extracted Alpine.js component logic (was inline)
 4. **`resources/css/playground.css`** - Tailwind v4 styles with Font Awesome import
 5. **`docs/ASSET_COMPILATION.md`** - Complete asset compilation guide
@@ -59,9 +59,9 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 <head>
     <link
         rel="stylesheet"
-        href="{{ asset('volcanic/playgroundStyles.css') }}"
+        href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
     />
-    <script src="{{ asset('volcanic/playground.js') }}" defer></script>
+    <script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
 </head>
 <body>
     <!-- No inline script -->
@@ -84,7 +84,7 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 ```gitignore
 # Frontend Assets
 /node_modules
-# Note: public/volcanic/*.{js,css} are committed (compiled assets for package distribution)
+# Note: resources/dist/*.{js,css} are committed (compiled assets for package distribution)
 ```
 
 **Rationale**: Unlike typical Laravel apps, compiled assets are committed because this is a **package** distributed via Composer.
@@ -112,7 +112,7 @@ Migrated to a Vite-based build system with Tailwind CSS v4 (beta) for optimized,
 ## Build Output
 
 ```
-public/volcanic/
+resources/dist/
 ├── playground.js              47.32 KB (17.07 KB gzipped)
 ├── playgroundStyles.css       88.41 KB (27.81 KB gzipped)
 ├── fa-solid-900.woff2        158.22 kB
@@ -225,7 +225,7 @@ npm run dev      # Start Vite dev server with HMR
 ### Production
 
 ```bash
-npm run build    # Compile to public/volcanic/
+npm run build    # Compile to resources/dist/
 composer test    # Verify tests still pass
 ```
 
@@ -234,7 +234,7 @@ composer test    # Verify tests still pass
 ```bash
 npm run build               # Rebuild assets
 composer test:all           # Run all quality checks
-git add public/volcanic/    # Commit compiled assets
+git add resources/dist/    # Commit compiled assets
 git commit -m "chore: rebuild playground assets"
 ```
 
@@ -288,7 +288,7 @@ If issues arise:
 2. **Remove Build Files**:
 
     ```bash
-    rm -rf public/volcanic/
+    rm -rf resources/dist/
     rm -rf node_modules/
     rm package.json vite.config.js
     ```

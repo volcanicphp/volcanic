@@ -4,8 +4,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Volcanic API Playground</title>
-        <link rel="stylesheet" href="{{ asset('volcanic/playgroundStyles.css') }}">
-        <script src="{{ asset('volcanic/playground.js') }}" defer></script>
+        <link rel="stylesheet" href="{{ asset('vendor/volcanic/playgroundStyles.css') }}">
+        <script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
     </head>
     <body class="bg-gray-50">
         <div x-data="playground()" x-init="init()" class="min-h-screen">

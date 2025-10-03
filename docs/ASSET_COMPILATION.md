@@ -17,19 +17,38 @@ The Volcanic API Playground uses **Vite** to compile frontend assets (JavaScript
 resources/
 ├── js/
 │   └── playground.js         # Alpine.js component logic
-└── css/
-    └── playground.css         # Tailwind v4 styles
-
-public/volcanic/               # Compiled output directory
-├── playground.js              # Compiled JavaScript (47.32 KB, 17.07 KB gzipped)
-├── playgroundStyles.css       # Compiled CSS (88.41 KB, 27.81 KB gzipped)
-├── fa-*.{woff2,ttf}          # Font Awesome font files
-└── .vite/
-    └── manifest.json          # Vite build manifest
+├── css/
+│   └── playground.css         # Tailwind v4 styles
+└── dist/                      # Compiled output (committed to repo)
+    ├── playground.js              # Compiled JavaScript (47.32 KB, 17.07 KB gzipped)
+    ├── playgroundStyles.css       # Compiled CSS (88.41 kB, 27.81 kB gzipped)
+    ├── fa-*.{woff2,ttf}          # Font Awesome font files
+    └── .vite/
+        └── manifest.json          # Vite build manifest
 
 package.json                   # NPM dependencies
 vite.config.js                 # Vite configuration
 ```
+
+### Asset Publishing with Spatie Package Tools
+
+Volcanic uses [Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools) for package management. When users install the package, they can publish assets using:
+
+```bash
+php artisan vendor:publish --tag="volcanic-assets"
+```
+
+This copies files from `resources/dist/` to `public/vendor/volcanic/`, making them publicly accessible.
+
+**Key Points**:
+
+-   **Development**: Assets are compiled to `resources/dist/` (committed to repo)
+-   **User Installation**: Assets are published to `public/vendor/volcanic/` on user's server
+-   **Blade Templates**: Reference assets via `{{ asset('vendor/volcanic/playground.js') }}`
+-   **No Build Required**: End users don't need Node.js or npm installed
+    vite.config.js # Vite configuration
+
+````
 
 ## Development Workflow
 
@@ -41,7 +60,7 @@ npm install
 
 # Start development server with hot reload
 npm run dev
-```
+````
 
 ### Building for Production
 
@@ -49,7 +68,7 @@ npm run dev
 # Compile assets
 npm run build
 
-# Output goes to public/volcanic/
+# Output goes to resources/dist/
 ```
 
 ### Making Changes
@@ -121,8 +140,11 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 **After** (Vite-compiled):
 
 ```html
-<link rel="stylesheet" href="{{ asset('volcanic/playgroundStyles.css') }}" />
-<script src="{{ asset('volcanic/playground.js') }}" defer></script>
+<link
+    rel="stylesheet"
+    href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
+/>
+<script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
 ```
 
 ## Vite Configuration
@@ -143,7 +165,7 @@ export default defineConfig({
                 assetFileNames: "[name].[ext]",
             },
         },
-        outDir: "public/volcanic",
+        outDir: "resources/dist",
         emptyOutDir: true,
     },
 });
@@ -151,17 +173,18 @@ export default defineConfig({
 
 ### Key Configuration Decisions
 
--   **Output Directory**: `public/volcanic/` keeps playground assets isolated
+-   **Output Directory**: `resources/dist/` follows [Spatie Package Tools convention](https://github.com/spatie/laravel-package-tools) for publishable assets
 -   **File Naming**: `[name].[ext]` removes hashes for predictable asset URLs (package distribution doesn't need cache busting)
 -   **Empty Output**: `emptyOutDir: true` ensures clean builds
+-   **Asset Publishing**: The `->hasAssets()` method in `VolcanicServiceProvider` automatically registers `resources/dist/` for publishing
 
 ## Asset Loading in Laravel
 
 The playground blade template uses Laravel's `asset()` helper:
 
 ```blade
-<link rel="stylesheet" href="{{ asset('volcanic/playgroundStyles.css') }}">
-<script src="{{ asset('volcanic/playground.js') }}" defer></script>
+<link rel="stylesheet" href="{{ asset('vendor/volcanic/playgroundStyles.css') }}">
+<script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
 ```
 
 This automatically resolves to:
@@ -203,7 +226,7 @@ The blade template initializes the component:
 1. **Check Build Output**:
 
     ```bash
-    ls -lh public/volcanic/
+    ls -lh resources/dist/
     ```
 
     Should show `playground.js` and `playgroundStyles.css`
@@ -245,16 +268,16 @@ The blade template initializes the component:
 
 1. Check `vite.config.js` includes `.blade.php` files (implicit in v4)
 2. Rebuild: `npm run build`
-3. Verify class exists in `public/volcanic/playgroundStyles.css`
+3. Verify class exists in `resources/dist/playgroundStyles.css`
 
 ### Font Awesome Icons Missing
 
 **Issue**: Icons not rendering
 
-**Solution**: Font files should be in `public/volcanic/`:
+**Solution**: Font files should be in `resources/dist/`:
 
 ```bash
-ls public/volcanic/fa-*.{woff2,ttf}
+ls resources/dist/fa-*.{woff2,ttf}
 # Should show: fa-brands-400, fa-regular-400, fa-solid-900, fa-v4compatibility
 ```
 
@@ -269,7 +292,7 @@ The **compiled assets are committed** to the repository (unlike typical Laravel 
 ```gitignore
 # Frontend Assets
 /node_modules
-# Note: public/volcanic/*.{js,css} are committed (compiled assets for package distribution)
+# Note: resources/dist/*.{js,css} are committed (compiled assets for package distribution)
 ```
 
 ### Why Commit Compiled Assets?
@@ -294,7 +317,7 @@ npm run build
 composer test:all
 
 # 4. Commit compiled assets
-git add public/volcanic/
+git add resources/dist/
 git commit -m "chore: rebuild playground assets"
 
 # 5. Tag release
@@ -309,11 +332,11 @@ git push --tags
 ```
 ✓ 3 modules transformed in 201ms
 
-public/volcanic/playground.js              47.32 kB │ gzip: 17.07 kB
-public/volcanic/playgroundStyles.css       88.41 kB │ gzip: 27.81 kB
-public/volcanic/fa-solid-900.woff2        158.22 kB
-public/volcanic/fa-brands-400.woff2       118.68 kB
-public/volcanic/fa-regular-400.woff2       25.47 kB
+resources/dist/playground.js              47.32 kB │ gzip: 17.07 kB
+resources/dist/playgroundStyles.css       88.41 kB │ gzip: 27.81 kB
+resources/dist/fa-solid-900.woff2        158.22 kB
+resources/dist/fa-brands-400.woff2       118.68 kB
+resources/dist/fa-regular-400.woff2       25.47 kB
 ```
 
 ### Load Time Comparison
@@ -351,7 +374,7 @@ Track bundle sizes over time:
 
 ```bash
 # After each build
-npm run build | grep "public/volcanic"
+npm run build | grep "resources/dist"
 ```
 
 Alert if playground.js exceeds **60 KB** or playgroundStyles.css exceeds **100 KB** (uncompressed).
