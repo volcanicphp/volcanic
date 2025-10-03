@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 
 export default defineConfig({
-    base: '/vendor/volcanic/',
+    base: "/vendor/volcanic/",
     build: {
         outDir: "resources/dist",
         emptyOutDir: true,

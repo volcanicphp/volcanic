@@ -49,7 +49,7 @@ Fonts are referenced with the base path `/vendor/volcanic/` configured in `vite.
 
 ```javascript
 export default defineConfig({
-    base: '/vendor/volcanic/',  // ← Critical for font paths
+    base: "/vendor/volcanic/", // ← Critical for font paths
     build: {
         outDir: "resources/dist",
         // ...
@@ -62,8 +62,8 @@ This ensures Font Awesome CSS contains correct paths:
 ```css
 @font-face {
     font-family: "Font Awesome 6 Free";
-    src: url(/vendor/volcanic/fa-solid-900.woff2) format("woff2"),
-         url(/vendor/volcanic/fa-solid-900.ttf) format("truetype");
+    src: url(/vendor/volcanic/fa-solid-900.woff2) format("woff2"), url(/vendor/volcanic/fa-solid-900.ttf)
+            format("truetype");
 }
 ```
 
@@ -74,6 +74,7 @@ This ensures Font Awesome CSS contains correct paths:
 **Problem**: Fonts trying to load from `http://localhost/fa-solid-900.ttf` instead of `http://localhost/vendor/volcanic/fa-solid-900.ttf`
 
 **Solution**:
+
 1. Verify `base: '/vendor/volcanic/'` is set in `vite.config.js`
 2. Rebuild assets: `npm run build`
 3. Republish: `php artisan vendor:publish --tag="volcanic-assets" --force`
@@ -83,6 +84,7 @@ This ensures Font Awesome CSS contains correct paths:
 **Problem**: `Uncaught ReferenceError: playground is not defined`
 
 **Solution**:
+
 1. Ensure assets are published: `ls public/vendor/volcanic/playground.js`
 2. Check browser network tab - JS should load from `/vendor/volcanic/playground.js`
 3. Republish if missing: `php artisan vendor:publish --tag="volcanic-assets" --force`
@@ -92,6 +94,7 @@ This ensures Font Awesome CSS contains correct paths:
 **Problem**: Playground UI looks unstyled
 
 **Solution**:
+
 1. Verify CSS is published: `ls public/vendor/volcanic/playgroundStyles.css`
 2. Check browser network tab - CSS should load from `/vendor/volcanic/playgroundStyles.css`
 3. Clear browser cache (Ctrl+Shift+R / Cmd+Shift+R)
@@ -102,28 +105,31 @@ This ensures Font Awesome CSS contains correct paths:
 ### For Package Maintainers
 
 1. **Edit source files**:
-   ```bash
-   vim resources/js/playground.js
-   vim resources/css/playground.css
-   ```
+
+    ```bash
+    vim resources/js/playground.js
+    vim resources/css/playground.css
+    ```
 
 2. **Rebuild assets**:
-   ```bash
-   npm run build
-   ```
+
+    ```bash
+    npm run build
+    ```
 
 3. **Test changes** (in a test Laravel app):
-   ```bash
-   cd /path/to/test-laravel-app
-   php artisan vendor:publish --tag="volcanic-assets" --force
-   php artisan serve
-   ```
+
+    ```bash
+    cd /path/to/test-laravel-app
+    php artisan vendor:publish --tag="volcanic-assets" --force
+    php artisan serve
+    ```
 
 4. **Commit compiled assets**:
-   ```bash
-   git add resources/dist/
-   git commit -m "chore: rebuild playground assets"
-   ```
+    ```bash
+    git add resources/dist/
+    git commit -m "chore: rebuild playground assets"
+    ```
 
 ### Automated Publishing
 
@@ -190,55 +196,55 @@ output: {
 name: Build Assets
 
 on:
-  push:
-    paths:
-      - 'resources/js/**'
-      - 'resources/css/**'
-      - 'package.json'
-      - 'vite.config.js'
+    push:
+        paths:
+            - "resources/js/**"
+            - "resources/css/**"
+            - "package.json"
+            - "vite.config.js"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build assets
-        run: npm run build
-        
-      - name: Commit changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add resources/dist/
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: rebuild assets"
-          git push
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "18"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build assets
+              run: npm run build
+
+            - name: Commit changes
+              run: |
+                  git config user.name "GitHub Actions"
+                  git config user.email "actions@github.com"
+                  git add resources/dist/
+                  git diff --quiet && git diff --staged --quiet || git commit -m "chore: rebuild assets"
+                  git push
 ```
 
 ## Production Checklist
 
 Before releasing a new version:
 
-- [ ] `npm run build` executed
-- [ ] `resources/dist/` committed to git
-- [ ] Font paths verified: `grep "url(/vendor/volcanic" resources/dist/playgroundStyles.css`
-- [ ] JS file size < 60 KB uncompressed
-- [ ] CSS file size < 100 KB uncompressed
-- [ ] All Font Awesome fonts present in `resources/dist/`
-- [ ] Tested in fresh Laravel app with published assets
-- [ ] Browser console has no errors
-- [ ] Network tab shows 200 for all assets (no 404s)
+-   [ ] `npm run build` executed
+-   [ ] `resources/dist/` committed to git
+-   [ ] Font paths verified: `grep "url(/vendor/volcanic" resources/dist/playgroundStyles.css`
+-   [ ] JS file size < 60 KB uncompressed
+-   [ ] CSS file size < 100 KB uncompressed
+-   [ ] All Font Awesome fonts present in `resources/dist/`
+-   [ ] Tested in fresh Laravel app with published assets
+-   [ ] Browser console has no errors
+-   [ ] Network tab shows 200 for all assets (no 404s)
 
 ## References
 
-- Spatie Package Tools: https://github.com/spatie/laravel-package-tools
-- Laravel Asset Publishing: https://laravel.com/docs/packages#public-assets
-- Vite Base Option: https://vitejs.dev/config/shared-options.html#base
+-   Spatie Package Tools: https://github.com/spatie/laravel-package-tools
+-   Laravel Asset Publishing: https://laravel.com/docs/packages#public-assets
+-   Vite Base Option: https://vitejs.dev/config/shared-options.html#base
