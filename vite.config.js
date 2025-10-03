@@ -1,8 +1,12 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
     base: "/vendor/volcanic/",
+
+    plugins: [tailwindcss()],
+
     build: {
         outDir: "resources/dist",
         emptyOutDir: true,
@@ -22,6 +26,7 @@ export default defineConfig({
             },
         },
     },
+
     resolve: {
         alias: {
             "@": resolve(__dirname, "resources"),

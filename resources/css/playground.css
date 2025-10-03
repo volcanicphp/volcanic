@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@source '../**/*.blade.php';
+
 /* Import Font Awesome */
 @import "@fortawesome/fontawesome-free/css/all.css";
 
