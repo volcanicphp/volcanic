@@ -4,13 +4,13 @@ This playground is built with modern web technologies for a superior developer e
 
 ## Tech Stack
 
--   **React 18.2** - Modern React with hooks
--   **TypeScript** - Type-safe development
--   **shadcn/ui** - High-quality, accessible UI components built on Radix UI
--   **Tailwind CSS v4** - Utility-first CSS framework
--   **Vite 5** - Lightning-fast build tool
--   **Lucide React** - Beautiful icon library
--   **react-json-view-lite** - Syntax-highlighted JSON viewer
+- **React 18.2** - Modern React with hooks
+- **TypeScript** - Type-safe development
+- **shadcn/ui** - High-quality, accessible UI components built on Radix UI
+- **Tailwind CSS v4** - Utility-first CSS framework
+- **Vite 5** - Lightning-fast build tool
+- **Lucide React** - Beautiful icon library
+- **react-json-view-lite** - Syntax-highlighted JSON viewer
 
 ## Project Structure
 
@@ -72,9 +72,9 @@ Components will be added to `resources/js/components/ui/` as `.tsx` files.
 
 ### TypeScript Configuration
 
--   `tsconfig.json` - Main TypeScript config for the app
--   `tsconfig.node.json` - TypeScript config for Vite config file
--   Path alias `@/*` maps to `resources/js/*` for cleaner imports
+- `tsconfig.json` - Main TypeScript config for the app
+- `tsconfig.node.json` - TypeScript config for Vite config file
+- Path alias `@/*` maps to `resources/js/*` for cleaner imports
 
 ### Component Development
 
@@ -93,10 +93,10 @@ export function MyComponent({ value, onChange }: Props) {
 
 ### Styling
 
--   Uses Tailwind CSS v4 (no config file needed)
--   shadcn/ui components use standard Tailwind classes
--   Custom styles in `resources/css/playground.css`
--   `@source` directive tells Tailwind which files to scan
+- Uses Tailwind CSS v4 (no config file needed)
+- shadcn/ui components use standard Tailwind classes
+- Custom styles in `resources/css/playground.css`
+- `@source` directive tells Tailwind which files to scan
 
 ## Publishing Assets
 
@@ -108,15 +108,15 @@ php artisan vendor:publish --tag="volcanic-assets" --force
 
 ## Features
 
--   ✅ Full TypeScript type safety
--   ✅ Accessible components (WCAG compliant via Radix UI)
--   ✅ Syntax-highlighted JSON responses
--   ✅ Real-time request building
--   ✅ Route and model discovery
--   ✅ Authentication support (Bearer/Basic)
--   ✅ Multiple request body types (JSON/Form)
--   ✅ Responsive design
--   ✅ Dark mode ready (via Tailwind)
+- ✅ Full TypeScript type safety
+- ✅ Accessible components (WCAG compliant via Radix UI)
+- ✅ Syntax-highlighted JSON responses
+- ✅ Real-time request building
+- ✅ Route and model discovery
+- ✅ Authentication support (Bearer/Basic)
+- ✅ Multiple request body types (JSON/Form)
+- ✅ Responsive design
+- ✅ Dark mode ready (via Tailwind)
 
 ## Troubleshooting
 
@@ -149,8 +149,8 @@ php artisan vendor:publish --tag="volcanic-assets" --force
 
 ## Learn More
 
--   [React Documentation](https://react.dev)
--   [TypeScript Handbook](https://www.typescriptlang.org/docs/)
--   [shadcn/ui Documentation](https://ui.shadcn.com)
--   [Tailwind CSS v4](https://tailwindcss.com)
--   [Vite Documentation](https://vitejs.dev)
+- [React Documentation](https://react.dev)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [shadcn/ui Documentation](https://ui.shadcn.com)
+- [Tailwind CSS v4](https://tailwindcss.com)
+- [Vite Documentation](https://vitejs.dev)

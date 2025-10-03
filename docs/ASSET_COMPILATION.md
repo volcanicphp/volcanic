@@ -6,10 +6,10 @@ The Volcanic API Playground uses **Vite** to compile frontend assets (JavaScript
 
 ## Tech Stack
 
--   **Build Tool**: Vite 5.0
--   **JavaScript**: Alpine.js 3.13.0 (no build step required, included via CDN in compiled bundle)
--   **CSS**: Tailwind CSS v4.0.0 (latest beta with simplified configuration)
--   **Icons**: Font Awesome 6.5.0 (Free)
+- **Build Tool**: Vite 5.0
+- **JavaScript**: Alpine.js 3.13.0 (no build step required, included via CDN in compiled bundle)
+- **CSS**: Tailwind CSS v4.0.0 (latest beta with simplified configuration)
+- **Icons**: Font Awesome 6.5.0 (Free)
 
 ## File Structure
 
@@ -42,11 +42,11 @@ This copies files from `resources/dist/` to `public/vendor/volcanic/`, making th
 
 **Key Points**:
 
--   **Development**: Assets are compiled to `resources/dist/` (committed to repo)
--   **User Installation**: Assets are published to `public/vendor/volcanic/` on user's server
--   **Blade Templates**: Reference assets via `{{ asset('vendor/volcanic/playground.js') }}`
--   **No Build Required**: End users don't need Node.js or npm installed
-    vite.config.js # Vite configuration
+- **Development**: Assets are compiled to `resources/dist/` (committed to repo)
+- **User Installation**: Assets are published to `public/vendor/volcanic/` on user's server
+- **Blade Templates**: Reference assets via `{{ asset('vendor/volcanic/playground.js') }}`
+- **No Build Required**: End users don't need Node.js or npm installed
+  vite.config.js # Vite configuration
 
 ````
 
@@ -74,28 +74,27 @@ npm run build
 ### Making Changes
 
 1. **Edit Source Files**:
-
-    - JavaScript: `resources/js/playground.js`
-    - CSS: `resources/css/playground.css`
+   - JavaScript: `resources/js/playground.js`
+   - CSS: `resources/css/playground.css`
 
 2. **Rebuild Assets**:
 
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 
 3. **Test Changes**:
 
-    ```bash
-    # Run tests
-    composer test
+   ```bash
+   # Run tests
+   composer test
 
-    # Start local server
-    php artisan serve
+   # Start local server
+   php artisan serve
 
-    # Visit playground
-    open http://localhost:8000/volcanic/playground
-    ```
+   # Visit playground
+   open http://localhost:8000/volcanic/playground
+   ```
 
 ## Tailwind CSS v4 Migration
 
@@ -103,9 +102,9 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 
 ### What Changed
 
--   **No Configuration Files**: Removed `tailwind.config.js`, `postcss.config.js`, `autoprefixer`
--   **Simplified Import**: Single line in CSS: `@import "tailwindcss"`
--   **Automatic Detection**: Tailwind v4 automatically scans templates and generates required utilities
+- **No Configuration Files**: Removed `tailwind.config.js`, `postcss.config.js`, `autoprefixer`
+- **Simplified Import**: Single line in CSS: `@import "tailwindcss"`
+- **Automatic Detection**: Tailwind v4 automatically scans templates and generates required utilities
 
 ### CSS File Structure
 
@@ -120,7 +119,7 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 
 /* Custom scrollbar styles */
 .scrollbar-thin::-webkit-scrollbar {
-    /* ... */
+  /* ... */
 }
 ```
 
@@ -132,8 +131,8 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3/..." rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3/..." defer></script>
 <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/..."
-    rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/..."
+  rel="stylesheet"
 />
 ```
 
@@ -141,8 +140,8 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 
 ```html
 <link
-    rel="stylesheet"
-    href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
+  rel="stylesheet"
+  href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
 />
 <script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
 ```
@@ -151,32 +150,32 @@ Volcanic uses **Tailwind CSS v4** (currently in beta), which introduces signific
 
 ```javascript
 // vite.config.js
-import { defineConfig } from "vite";
+import { defineConfig } from "vite"
 
 export default defineConfig({
-    build: {
-        rollupOptions: {
-            input: {
-                playground: "resources/js/playground.js",
-                playgroundStyles: "resources/css/playground.css",
-            },
-            output: {
-                entryFileNames: "[name].js",
-                assetFileNames: "[name].[ext]",
-            },
-        },
-        outDir: "resources/dist",
-        emptyOutDir: true,
+  build: {
+    rollupOptions: {
+      input: {
+        playground: "resources/js/playground.js",
+        playgroundStyles: "resources/css/playground.css",
+      },
+      output: {
+        entryFileNames: "[name].js",
+        assetFileNames: "[name].[ext]",
+      },
     },
-});
+    outDir: "resources/dist",
+    emptyOutDir: true,
+  },
+})
 ```
 
 ### Key Configuration Decisions
 
--   **Output Directory**: `resources/dist/` follows [Spatie Package Tools convention](https://github.com/spatie/laravel-package-tools) for publishable assets
--   **File Naming**: `[name].[ext]` removes hashes for predictable asset URLs (package distribution doesn't need cache busting)
--   **Empty Output**: `emptyOutDir: true` ensures clean builds
--   **Asset Publishing**: The `->hasAssets()` method in `VolcanicServiceProvider` automatically registers `resources/dist/` for publishing
+- **Output Directory**: `resources/dist/` follows [Spatie Package Tools convention](https://github.com/spatie/laravel-package-tools) for publishable assets
+- **File Naming**: `[name].[ext]` removes hashes for predictable asset URLs (package distribution doesn't need cache busting)
+- **Empty Output**: `emptyOutDir: true` ensures clean builds
+- **Asset Publishing**: The `->hasAssets()` method in `VolcanicServiceProvider` automatically registers `resources/dist/` for publishing
 
 ## Asset Loading in Laravel
 
@@ -189,8 +188,8 @@ The playground blade template uses Laravel's `asset()` helper:
 
 This automatically resolves to:
 
--   Local: `http://localhost:8000/volcanic/playgroundStyles.css`
--   Production: `https://example.com/volcanic/playgroundStyles.css`
+- Local: `http://localhost:8000/volcanic/playgroundStyles.css`
+- Production: `https://example.com/volcanic/playgroundStyles.css`
 
 ## Alpine.js Integration
 
@@ -198,24 +197,24 @@ Alpine.js is included in the compiled JavaScript bundle:
 
 ```javascript
 // resources/js/playground.js
-import Alpine from "alpinejs";
+import Alpine from "alpinejs"
 
-window.Alpine = Alpine;
-Alpine.start();
+window.Alpine = Alpine
+Alpine.start()
 
 window.playground = function () {
-    return {
-        schema: { routes: [], models: [] },
-        // ... component logic
-    };
-};
+  return {
+    schema: { routes: [], models: [] },
+    // ... component logic
+  }
+}
 ```
 
 The blade template initializes the component:
 
 ```html
 <div x-data="playground()" x-init="init()">
-    <!-- Playground UI -->
+  <!-- Playground UI -->
 </div>
 ```
 
@@ -225,23 +224,23 @@ The blade template initializes the component:
 
 1. **Check Build Output**:
 
-    ```bash
-    ls -lh resources/dist/
-    ```
+   ```bash
+   ls -lh resources/dist/
+   ```
 
-    Should show `playground.js` and `playgroundStyles.css`
+   Should show `playground.js` and `playgroundStyles.css`
 
 2. **Rebuild Assets**:
 
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 
 3. **Clear Laravel Cache**:
-    ```bash
-    php artisan cache:clear
-    php artisan view:clear
-    ```
+   ```bash
+   php artisan cache:clear
+   php artisan view:clear
+   ```
 
 ### Alpine.js Warnings
 
@@ -252,11 +251,11 @@ The blade template initializes the component:
 ```html
 <!-- ✗ WRONG - can cause duplicate keys -->
 <template x-for="route in routes" :key="route.uri + route.method">
-    <!-- ✓ CORRECT - unique index-based keys -->
-    <template
-        x-for="(route, routeIndex) in routes"
-        :key="'route-' + routeIndex"
-    ></template
+  <!-- ✓ CORRECT - unique index-based keys -->
+  <template
+    x-for="(route, routeIndex) in routes"
+    :key="'route-' + routeIndex"
+  ></template
 ></template>
 ```
 
@@ -343,16 +342,16 @@ resources/dist/fa-regular-400.woff2       25.47 kB
 
 **Before (CDN)**:
 
--   3 external HTTP requests
--   Unpredictable latency (CDN availability)
--   Browser cache dependent on CDN headers
+- 3 external HTTP requests
+- Unpredictable latency (CDN availability)
+- Browser cache dependent on CDN headers
 
 **After (Vite)**:
 
--   2 local HTTP requests (JS + CSS)
--   Predictable performance (same server)
--   Full control over cache headers
--   Total: ~65 KB gzipped (JS + CSS)
+- 2 local HTTP requests (JS + CSS)
+- Predictable performance (same server)
+- Full control over cache headers
+- Total: ~65 KB gzipped (JS + CSS)
 
 ## Future Improvements
 
@@ -362,11 +361,11 @@ resources/dist/fa-regular-400.woff2       25.47 kB
 2. **CSS Purging**: Further reduce CSS size by scanning only playground templates (Tailwind v4 auto-purges)
 3. **Asset Versioning**: Add `[hash]` to filenames for cache busting (requires config update)
 4. **Source Maps**: Enable for debugging in development:
-    ```javascript
-    build: {
-        sourcemap: process.env.NODE_ENV === 'development',
-    }
-    ```
+   ```javascript
+   build: {
+       sourcemap: process.env.NODE_ENV === 'development',
+   }
+   ```
 
 ### Monitoring
 
@@ -381,7 +380,7 @@ Alert if playground.js exceeds **60 KB** or playgroundStyles.css exceeds **100 K
 
 ## References
 
--   [Vite Documentation](https://vitejs.dev/)
--   [Tailwind CSS v4 Beta](https://tailwindcss.com/blog/tailwindcss-v4-beta)
--   [Alpine.js Guide](https://alpinejs.dev/)
--   [Font Awesome Free](https://fontawesome.com/download)
+- [Vite Documentation](https://vitejs.dev/)
+- [Tailwind CSS v4 Beta](https://tailwindcss.com/blog/tailwindcss-v4-beta)
+- [Alpine.js Guide](https://alpinejs.dev/)
+- [Font Awesome Free](https://fontawesome.com/download)

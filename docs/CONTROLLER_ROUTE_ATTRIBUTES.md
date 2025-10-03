@@ -10,18 +10,18 @@ Used for listing/index endpoints that typically return collections of resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated from method name
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `paginate` (bool): Enable pagination. Default: `true`
--   `perPage` (int, optional): Items per page for pagination
--   `sortable` (array): Fields that can be sorted
--   `filterable` (array): Fields that can be filtered
--   `searchable` (array): Fields that can be searched
--   `scoutSearch` (bool, optional): Enable Laravel Scout search
--   `methods` (array): HTTP methods. Default: `['GET']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated from method name
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `paginate` (bool): Enable pagination. Default: `true`
+- `perPage` (int, optional): Items per page for pagination
+- `sortable` (array): Fields that can be sorted
+- `filterable` (array): Fields that can be filtered
+- `searchable` (array): Fields that can be searched
+- `scoutSearch` (bool, optional): Enable Laravel Scout search
+- `methods` (array): HTTP methods. Default: `['GET']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
 
 **Example:**
 
@@ -48,13 +48,13 @@ Used for showing individual resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['GET']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `parameterName` (string, optional): Custom parameter name for route model binding
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['GET']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `parameterName` (string, optional): Custom parameter name for route model binding
 
 **Example:**
 
@@ -77,14 +77,14 @@ Used for creating new resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['POST']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `rules` (array|string): Validation rules for the request
--   `formRequest` (string, optional): Custom Form Request class for validation
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['POST']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `rules` (array|string): Validation rules for the request
+- `formRequest` (string, optional): Custom Form Request class for validation
 
 **Example:**
 
@@ -111,15 +111,15 @@ Used for updating existing resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['PUT', 'PATCH']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `rules` (array|string): Validation rules for the request
--   `formRequest` (string, optional): Custom Form Request class for validation
--   `parameterName` (string, optional): Custom parameter name for route model binding
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['PUT', 'PATCH']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `rules` (array|string): Validation rules for the request
+- `formRequest` (string, optional): Custom Form Request class for validation
+- `parameterName` (string, optional): Custom parameter name for route model binding
 
 **Example:**
 
@@ -148,14 +148,14 @@ Used for deleting resources (soft delete by default).
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['DELETE']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `parameterName` (string, optional): Custom parameter name for route model binding
--   `forceDelete` (bool): Whether to perform a force delete. Default: `false`
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}` parameter
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['DELETE']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `parameterName` (string, optional): Custom parameter name for route model binding
+- `forceDelete` (bool): Whether to perform a force delete. Default: `false`
 
 **Example:**
 
@@ -178,13 +178,13 @@ Used for restoring soft-deleted resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}/restore` pattern
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['PATCH', 'POST']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `parameterName` (string, optional): Custom parameter name for route model binding
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}/restore` pattern
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['PATCH', 'POST']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `parameterName` (string, optional): Custom parameter name for route model binding
 
 **Example:**
 
@@ -208,13 +208,13 @@ Used for permanently deleting resources.
 
 **Parameters:**
 
--   `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}/force` pattern
--   `name` (string, optional): Route name. Default: auto-generated
--   `middleware` (array): Middleware to apply to the route
--   `methods` (array): HTTP methods. Default: `['DELETE']`
--   `where` (array): Route parameter constraints
--   `domain` (string, optional): Domain constraint
--   `parameterName` (string, optional): Custom parameter name for route model binding
+- `uri` (string, optional): Custom URI pattern. Default: auto-generated with `{id}/force` pattern
+- `name` (string, optional): Route name. Default: auto-generated
+- `middleware` (array): Middleware to apply to the route
+- `methods` (array): HTTP methods. Default: `['DELETE']`
+- `where` (array): Route parameter constraints
+- `domain` (string, optional): Domain constraint
+- `parameterName` (string, optional): Custom parameter name for route model binding
 
 **Example:**
 
@@ -235,37 +235,37 @@ public function forceDelete(Request $request, int $id): JsonResponse
 
 1. **Add attributes to your controller methods:**
 
-    ```php
-    use Volcanic\Attributes\Index;
-    use Volcanic\Attributes\Show;
-    use Volcanic\Attributes\Store;
-    // ... other attributes
+   ```php
+   use Volcanic\Attributes\Index;
+   use Volcanic\Attributes\Show;
+   use Volcanic\Attributes\Store;
+   // ... other attributes
 
-    class ProductController extends Controller
-    {
-        #[Index(middleware: ['auth:api'])]
-        public function index(Request $request): JsonResponse
-        {
-            // Your logic here
-        }
-    }
-    ```
+   class ProductController extends Controller
+   {
+       #[Index(middleware: ['auth:api'])]
+       public function index(Request $request): JsonResponse
+       {
+           // Your logic here
+       }
+   }
+   ```
 
 2. **Register route discovery in your service provider:**
 
-    ```php
-    use Volcanic\Services\ApiRouteDiscoveryService;
+   ```php
+   use Volcanic\Services\ApiRouteDiscoveryService;
 
-    public function boot()
-    {
-        app(ApiRouteDiscoveryService::class)->discoverAndRegisterRoutes();
-    }
-    ```
+   public function boot()
+   {
+       app(ApiRouteDiscoveryService::class)->discoverAndRegisterRoutes();
+   }
+   ```
 
 3. **Or register routes for specific controllers:**
-    ```php
-    app(ApiRouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
-    ```
+   ```php
+   app(ApiRouteDiscoveryService::class)->registerControllerRoutes(ProductController::class);
+   ```
 
 ## Advanced Features
 
@@ -311,8 +311,8 @@ public function update(Request $request): JsonResponse { }
 
 When parameters are not specified, the attributes will auto-generate sensible defaults:
 
--   **URI**: Based on method name and attribute type (e.g., `products` for Index, `products/{id}` for Show)
--   **Route Name**: Based on controller and method name (e.g., `product-controller.index`)
--   **HTTP Methods**: Appropriate defaults for each action type
+- **URI**: Based on method name and attribute type (e.g., `products` for Index, `products/{id}` for Show)
+- **Route Name**: Based on controller and method name (e.g., `product-controller.index`)
+- **HTTP Methods**: Appropriate defaults for each action type
 
 This allows for minimal configuration while maintaining flexibility for complex routing requirements.

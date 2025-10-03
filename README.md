@@ -1,12 +1,12 @@
 # The ultimate so- ✅ **Automatic CRUD API generation** with PHP attributes
 
--   ✅ **Advanced query capabilities** (sorting, filtering, searching)
--   ✅ **Built-in pagination** with customizable settings
--   ✅ **Flexible validation** with per-operation rules
--   ✅ **Middleware support** for authentication and authorization
--   ✅ **Smart soft delete handling** with automatic trait detection
--   ✅ **Route customization** (prefix, names, operations)
--   ✅ **Auto-discovery** with manual override optionsution for Laravel APIs
+- ✅ **Advanced query capabilities** (sorting, filtering, searching)
+- ✅ **Built-in pagination** with customizable settings
+- ✅ **Flexible validation** with per-operation rules
+- ✅ **Middleware support** for authentication and authorization
+- ✅ **Smart soft delete handling** with automatic trait detection
+- ✅ **Route customization** (prefix, names, operations)
+- ✅ **Auto-discovery** with manual override optionsution for Laravel APIs
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/volcanic/volcanic.svg?style=flat-square)](https://packagist.org/packages/volcanic/volcanic)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/volcanic/volcanic/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/volcanic/volcanic/actions?query=workflow%3Arun-tests+branch%3Amain)
@@ -17,16 +17,16 @@ Volcanic is a Laravel package that provides a powerful, attribute-based approach
 
 ## Features
 
--   ✅ **Automatic CRUD API generation** with PHP attributes
--   ✅ **Advanced query capabilities** (sorting, filtering, searching)
--   ✅ **Built-in pagination** with customizable settings
--   ✅ **Flexible validation** with per-operation rules
--   ✅ **Middleware support** for authentication and authorization
--   ✅ **Soft delete handling** with restore and force delete operations
--   ✅ **Route customization** (prefix, names, operations)
--   ✅ **Auto-discovery** with manual override options
--   🆕 **Interactive API Playground** - GraphiQL-like interface for REST APIs
--   🆕 **Schema Introspection** - Auto-generated API documentation from your models
+- ✅ **Automatic CRUD API generation** with PHP attributes
+- ✅ **Advanced query capabilities** (sorting, filtering, searching)
+- ✅ **Built-in pagination** with customizable settings
+- ✅ **Flexible validation** with per-operation rules
+- ✅ **Middleware support** for authentication and authorization
+- ✅ **Soft delete handling** with restore and force delete operations
+- ✅ **Route customization** (prefix, names, operations)
+- ✅ **Auto-discovery** with manual override options
+- 🆕 **Interactive API Playground** - GraphiQL-like interface for REST APIs
+- 🆕 **Schema Introspection** - Auto-generated API documentation from your models
 
 ## Installation
 
@@ -76,11 +76,11 @@ class User extends Model
 
 This automatically creates these endpoints:
 
--   `GET /api/users` - List users (paginated)
--   `GET /api/users/{id}` - Show specific user
--   `POST /api/users` - Create user
--   `PUT /api/users/{id}` - Update user
--   `DELETE /api/users/{id}` - Delete user
+- `GET /api/users` - List users (paginated)
+- `GET /api/users/{id}` - Show specific user
+- `POST /api/users` - Create user
+- `PUT /api/users/{id}` - Update user
+- `DELETE /api/users/{id}` - Delete user
 
 ### Advanced Configuration
 
@@ -155,11 +155,11 @@ http://your-app.test/volcanic/playground
 
 ### Features
 
--   🎯 **Interactive Request Builder** - Test endpoints with a Postman-like interface
--   🔍 **Auto-complete** - Smart suggestions based on your API schema
--   📊 **Schema Explorer** - Browse all routes and models with their fields
--   🔐 **Authorization Support** - Configure Bearer tokens and Basic Auth
--   📝 **Pretty Responses** - Formatted JSON with syntax highlighting
+- 🎯 **Interactive Request Builder** - Test endpoints with a Postman-like interface
+- 🔍 **Auto-complete** - Smart suggestions based on your API schema
+- 📊 **Schema Explorer** - Browse all routes and models with their fields
+- 🔐 **Authorization Support** - Configure Bearer tokens and Basic Auth
+- 📝 **Pretty Responses** - Formatted JSON with syntax highlighting
 
 ### Configuration
 
@@ -200,8 +200,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
--   [Volcanic](https://github.com/volcanicphp)
--   [All Contributors](../../contributors)
+- [Volcanic](https://github.com/volcanicphp)
+- [All Contributors](../../contributors)
 
 ## License
 

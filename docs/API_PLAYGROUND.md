@@ -4,13 +4,13 @@ Volcanic includes a powerful API Playground similar to GraphiQL but designed spe
 
 ## Features
 
--   🎯 **Interactive Request Builder** - Build and test API requests with a Postman-like interface
--   🔍 **Auto-complete & Intelligence** - Smart suggestions based on your API schema
--   📊 **Schema Introspection** - Automatic discovery of routes, models, and database schema
--   🔐 **Authorization Support** - Configure Bearer tokens, Basic Auth, and custom headers
--   📝 **Request/Response Formatting** - JSON syntax highlighting and pretty-printing
--   🚀 **Zero Configuration** - Works out of the box with auto-discovered routes
--   🔒 **Environment-Based Access Control** - Secure access control with flexible configuration
+- 🎯 **Interactive Request Builder** - Build and test API requests with a Postman-like interface
+- 🔍 **Auto-complete & Intelligence** - Smart suggestions based on your API schema
+- 📊 **Schema Introspection** - Automatic discovery of routes, models, and database schema
+- 🔐 **Authorization Support** - Configure Bearer tokens, Basic Auth, and custom headers
+- 📝 **Request/Response Formatting** - JSON syntax highlighting and pretty-printing
+- 🚀 **Zero Configuration** - Works out of the box with auto-discovered routes
+- 🔒 **Environment-Based Access Control** - Secure access control with flexible configuration
 
 ## Quick Start
 
@@ -67,30 +67,27 @@ VOLCANIC_PLAYGROUND_ENABLED=true
 ### Main Components
 
 1. **Route Explorer (Left Sidebar)**
-
-    - Browse all available API routes
-    - Search and filter routes
-    - Click to auto-populate request builder
+   - Browse all available API routes
+   - Search and filter routes
+   - Click to auto-populate request builder
 
 2. **Model Inspector (Left Sidebar)**
-
-    - View all models with `#[ApiResource]` attribute
-    - Explore model fields and types
-    - See hidden/fillable properties
+   - View all models with `#[ApiResource]` attribute
+   - Explore model fields and types
+   - See hidden/fillable properties
 
 3. **Request Builder (Main Panel)**
-
-    - Configure HTTP method (GET, POST, PUT, PATCH, DELETE)
-    - Set request URL with autocomplete
-    - Manage query parameters
-    - Set custom headers
-    - Configure authorization
-    - Build request body (JSON or Form Data)
+   - Configure HTTP method (GET, POST, PUT, PATCH, DELETE)
+   - Set request URL with autocomplete
+   - Manage query parameters
+   - Set custom headers
+   - Configure authorization
+   - Build request body (JSON or Form Data)
 
 4. **Response Viewer (Main Panel)**
-    - View formatted response body
-    - Inspect response headers
-    - See response status and timing
+   - View formatted response body
+   - Inspect response headers
+   - See response status and timing
 
 ### Using the Request Builder
 
@@ -139,16 +136,16 @@ Value: custom-value
 
 ```json
 {
-    "name": "New Product",
-    "description": "Product description",
-    "price": 99.99
+  "name": "New Product",
+  "description": "Product description",
+  "price": 99.99
 }
 ```
 
 **Form Data:**
 
--   Add key-value pairs for form fields
--   Automatically serialized as JSON
+- Add key-value pairs for form fields
+- Automatically serialized as JSON
 
 ## Schema API
 
@@ -339,9 +336,9 @@ The playground provides Apollo Studio-like features for REST:
 
 **Solution:**
 
--   Check your environment: `php artisan env`
--   Verify `VOLCANIC_PLAYGROUND_ENABLED` in `.env`
--   Review `Playground::canAccess()` configuration
+- Check your environment: `php artisan env`
+- Verify `VOLCANIC_PLAYGROUND_ENABLED` in `.env`
+- Review `Playground::canAccess()` configuration
 
 ### Schema Not Loading
 
@@ -349,10 +346,10 @@ The playground provides Apollo Studio-like features for REST:
 
 **Solution:**
 
--   Verify models have `#[ApiResource]` attribute
--   Check model paths in `config/volcanic.php`
--   Ensure database tables exist
--   Run `php artisan volcanic:list` to see discovered models
+- Verify models have `#[ApiResource]` attribute
+- Check model paths in `config/volcanic.php`
+- Ensure database tables exist
+- Run `php artisan volcanic:list` to see discovered models
 
 ### Database Schema Issues
 
@@ -360,10 +357,10 @@ The playground provides Apollo Studio-like features for REST:
 
 **Solution:**
 
--   Verify database connection
--   Run migrations: `php artisan migrate`
--   Check table name matches model's `$table` property
--   Review database driver compatibility (MySQL, PostgreSQL, SQLite)
+- Verify database connection
+- Run migrations: `php artisan migrate`
+- Check table name matches model's `$table` property
+- Review database driver compatibility (MySQL, PostgreSQL, SQLite)
 
 ## API Reference
 
@@ -451,12 +448,12 @@ The schema includes model casts and types, allowing you to understand data trans
 
 ```json
 {
-    "casts": {
-        "id": "int",
-        "price": "decimal:2",
-        "published_at": "datetime",
-        "metadata": "json"
-    }
+  "casts": {
+    "id": "int",
+    "price": "decimal:2",
+    "published_at": "datetime",
+    "metadata": "json"
+  }
 }
 ```
 
@@ -466,32 +463,32 @@ View the exact configuration for each model's API:
 
 ```json
 {
-    "apiResourceConfig": {
-        "prefix": "api/v1",
-        "paginate": true,
-        "perPage": 25,
-        "sortable": ["name", "created_at"],
-        "filterable": ["status", "category_id"],
-        "searchable": ["name", "description"]
-    }
+  "apiResourceConfig": {
+    "prefix": "api/v1",
+    "paginate": true,
+    "perPage": 25,
+    "sortable": ["name", "created_at"],
+    "filterable": ["status", "category_id"],
+    "searchable": ["name", "description"]
+  }
 }
 ```
 
 This helps you understand:
 
--   Which fields are sortable
--   Which fields can be filtered
--   Which fields are searchable
--   Pagination settings
+- Which fields are sortable
+- Which fields can be filtered
+- Which fields are searchable
+- Pagination settings
 
 ## Contributing
 
 The playground is an evolving feature. Contributions welcome for:
 
--   UI/UX improvements
--   Additional database driver support
--   Enhanced autocomplete features
--   Request history/favorites
--   Code generation from playground requests
+- UI/UX improvements
+- Additional database driver support
+- Enhanced autocomplete features
+- Request history/favorites
+- Code generation from playground requests
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for details.

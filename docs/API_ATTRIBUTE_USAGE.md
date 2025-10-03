@@ -25,11 +25,11 @@ class User extends Model
 
 This will automatically create the following API endpoints:
 
--   `GET /api/users` - List all users (paginated)
--   `GET /api/users/{id}` - Show a specific user
--   `POST /api/users` - Create a new user
--   `PUT/PATCH /api/users/{id}` - Update a user
--   `DELETE /api/users/{id}` - Delete a user
+- `GET /api/users` - List all users (paginated)
+- `GET /api/users/{id}` - Show a specific user
+- `POST /api/users` - Create a new user
+- `PUT/PATCH /api/users/{id}` - Update a user
+- `DELETE /api/users/{id}` - Delete a user
 
 ## Automatic Soft Delete Detection
 
@@ -53,9 +53,9 @@ class Post extends Model
 
 This automatically adds the following soft delete endpoints:
 
--   `POST /api/posts/{id}/restore` - Restore a soft-deleted post
--   `DELETE /api/posts/{id}/force` - Permanently delete a post
--   Query parameters: `?include_trashed=1` and `?only_trashed=1`
+- `POST /api/posts/{id}/restore` - Restore a soft-deleted post
+- `DELETE /api/posts/{id}/force` - Permanently delete a post
+- Query parameters: `?include_trashed=1` and `?only_trashed=1`
 
 You can explicitly disable soft delete operations even when the trait is present:
 
@@ -114,14 +114,14 @@ class User extends Model
 
 This configuration will create endpoints under `/v1/customers` with:
 
--   Only `index`, `show`, and `store` operations
--   Authentication and rate limiting middleware
--   Pagination with 20 items per page
--   Sorting by name, created_at, or email
--   Filtering by status, type, or created_at
--   Search across name, email, and company fields
--   Validation rules for create and update operations
--   Field visibility controls
+- Only `index`, `show`, and `store` operations
+- Authentication and rate limiting middleware
+- Pagination with 20 items per page
+- Sorting by name, created_at, or email
+- Filtering by status, type, or created_at
+- Search across name, email, and company fields
+- Validation rules for create and update operations
+- Field visibility controls
 
 ## API Query Parameters
 
@@ -188,17 +188,17 @@ GET /api/users?filter[role]=admin&filter[status]=active
 
 **Important Notes:**
 
--   Wildcard validation checks if the field exists on the model (either in `fillable` or table columns)
--   If an invalid field is used, an `InvalidFieldException` will be thrown with a clear error message
--   Wildcard is currently only supported for `sortable` and `filterable` fields
--   You can combine wildcards with explicit fields: `sortable: ['name', '*']`
+- Wildcard validation checks if the field exists on the model (either in `fillable` or table columns)
+- If an invalid field is used, an `InvalidFieldException` will be thrown with a clear error message
+- Wildcard is currently only supported for `sortable` and `filterable` fields
+- You can combine wildcards with explicit fields: `sortable: ['name', '*']`
 
 **Error Responses:**
 When an invalid field is used, you'll receive a 400 error:
 
 ```json
 {
-    "message": "Field 'invalid_field' is not allowed for sorting. This API accepts any field due to wildcard (*) configuration, but 'invalid_field' may not exist on this model."
+  "message": "Field 'invalid_field' is not allowed for sorting. This API accepts any field due to wildcard (*) configuration, but 'invalid_field' may not exist on this model."
 }
 ```
 
@@ -213,8 +213,8 @@ DELETE /api/users/{id}/force      (permanently delete record)
 
 When `softDeletes: true` is enabled, additional endpoints are automatically created:
 
--   **Restore**: `PATCH /{resource}/{id}/restore` - Restore a soft deleted record
--   **Force Delete**: `DELETE /{resource}/{id}/force` - Permanently delete a record
+- **Restore**: `PATCH /{resource}/{id}/restore` - Restore a soft deleted record
+- **Force Delete**: `DELETE /{resource}/{id}/force` - Permanently delete a record
 
 Example model with soft deletes:
 
@@ -342,9 +342,9 @@ class FlexibleModel extends Model
 
 When using wildcards, Volcanic validates that the requested field actually exists on the model:
 
--   **Fillable Fields**: First checks if the field is in the model's `$fillable` array
--   **Table Columns**: If not fillable, checks if the field exists as a database column
--   **Error Handling**: Returns a `400 Bad Request` with a descriptive error message for invalid fields
+- **Fillable Fields**: First checks if the field is in the model's `$fillable` array
+- **Table Columns**: If not fillable, checks if the field exists as a database column
+- **Error Handling**: Returns a `400 Bad Request` with a descriptive error message for invalid fields
 
 ```php
 // These requests will work:

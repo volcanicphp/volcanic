@@ -183,12 +183,12 @@ If the specified column doesn't exist, the pagination service will fall back to 
 
 #### Standard Parameters
 
--   `page`: Page number (for paginate and simplePaginate)
--   `cursor`: Cursor value (for cursorPaginate)
+- `page`: Page number (for paginate and simplePaginate)
+- `cursor`: Cursor value (for cursorPaginate)
 
 #### Custom Parameters
 
--   `cursor_column`: Column to use for cursor pagination (defaults to model's primary key)
+- `cursor_column`: Column to use for cursor pagination (defaults to model's primary key)
 
 ### Disabling Pagination
 
@@ -208,21 +208,21 @@ class StaticData extends Model
 
 ### Length-Aware Pagination (`paginate`)
 
--   **Pros**: Full pagination information, familiar UI patterns
--   **Cons**: Slower on large datasets due to COUNT query
--   **Best for**: Small to medium datasets (< 100k records)
+- **Pros**: Full pagination information, familiar UI patterns
+- **Cons**: Slower on large datasets due to COUNT query
+- **Best for**: Small to medium datasets (< 100k records)
 
 ### Simple Pagination (`simplePaginate`)
 
--   **Pros**: Faster than length-aware, no COUNT query
--   **Cons**: No total count or last page information
--   **Best for**: Large datasets where total count isn't needed
+- **Pros**: Faster than length-aware, no COUNT query
+- **Cons**: No total count or last page information
+- **Best for**: Large datasets where total count isn't needed
 
 ### Cursor Pagination (`cursorPaginate`)
 
--   **Pros**: Consistent results, best performance on large datasets, handles real-time data well
--   **Cons**: More complex implementation, limited navigation options
--   **Best for**: Large datasets with frequent updates, real-time feeds
+- **Pros**: Consistent results, best performance on large datasets, handles real-time data well
+- **Cons**: More complex implementation, limited navigation options
+- **Best for**: Large datasets with frequent updates, real-time feeds
 
 ## Examples
 

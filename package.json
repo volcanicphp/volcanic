@@ -3,13 +3,16 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "fix": "prettier --write ."
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.1.14",
+        "@types/node": "^24.6.2",
         "@types/react": "^18.3.25",
         "@types/react-dom": "^18.3.7",
         "@vitejs/plugin-react": "^4.2.1",
+        "prettier": "^3.6.2",
         "tailwindcss": "^4.0.0",
         "typescript": "^5.9.3",
         "vite": "^5.0.0"

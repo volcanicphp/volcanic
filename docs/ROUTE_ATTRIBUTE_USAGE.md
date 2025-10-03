@@ -29,8 +29,8 @@ class ProductController extends Controller
 
 HTTP methods that this route should respond to.
 
--   **Default:** `['GET']`
--   **Examples:** `['GET']`, `['POST']`, `['PUT', 'PATCH']`, `['DELETE']`
+- **Default:** `['GET']`
+- **Examples:** `['GET']`, `['POST']`, `['PUT', 'PATCH']`, `['DELETE']`
 
 ```php
 #[Route(methods: ['POST'])]
@@ -44,8 +44,8 @@ public function update(Request $request): JsonResponse { }
 
 The URI pattern for the route. If not specified, a default URI will be generated based on the controller and method names.
 
--   **Default:** Auto-generated (e.g., `controller-name/method-name`)
--   **Examples:** `/api/products`, `/api/products/{id}`, `/admin/users/{user}/profile`
+- **Default:** Auto-generated (e.g., `controller-name/method-name`)
+- **Examples:** `/api/products`, `/api/products/{id}`, `/admin/users/{user}/profile`
 
 ```php
 #[Route(uri: '/api/products')]
@@ -63,8 +63,8 @@ public function featured(): JsonResponse { }
 
 The name for the route, used for route generation with `route()` helper.
 
--   **Default:** Auto-generated (e.g., `controller-name.method-name`)
--   **Examples:** `products.index`, `admin.users.show`
+- **Default:** Auto-generated (e.g., `controller-name.method-name`)
+- **Examples:** `products.index`, `admin.users.show`
 
 ```php
 #[Route(name: 'products.index')]
@@ -79,8 +79,8 @@ public function featured(): JsonResponse { }
 
 Middleware to apply to this route.
 
--   **Default:** `[]` (no middleware)
--   **Examples:** `['auth']`, `['auth:api', 'throttle:60,1']`, `['can:view-products']`
+- **Default:** `[]` (no middleware)
+- **Examples:** `['auth']`, `['auth:api', 'throttle:60,1']`, `['can:view-products']`
 
 ```php
 #[Route(middleware: ['auth:api'])]
@@ -94,8 +94,8 @@ public function adminOnly(): JsonResponse { }
 
 Regular expression constraints for route parameters.
 
--   **Default:** `[]` (no constraints)
--   **Examples:** `['id' => '[0-9]+']`, `['slug' => '[a-zA-Z0-9-]+']`
+- **Default:** `[]` (no constraints)
+- **Examples:** `['id' => '[0-9]+']`, `['slug' => '[a-zA-Z0-9-]+']`
 
 ```php
 #[Route(
@@ -118,8 +118,8 @@ public function categoryProduct(string $slug, int $id): JsonResponse { }
 
 Domain constraint for the route.
 
--   **Default:** `null` (no domain constraint)
--   **Examples:** `api.example.com`, `admin.mysite.com`
+- **Default:** `null` (no domain constraint)
+- **Examples:** `api.example.com`, `admin.mysite.com`
 
 ```php
 #[Route(
@@ -355,15 +355,15 @@ When `uri` or `name` are not specified, they are auto-generated:
 
 ### URI Generation
 
--   Controller: `ProductController`
--   Method: `featured`
--   Generated URI: `/product/featured`
+- Controller: `ProductController`
+- Method: `featured`
+- Generated URI: `/product/featured`
 
 ### Name Generation
 
--   Controller: `ProductController`
--   Method: `featured`
--   Generated Name: `product.featured`
+- Controller: `ProductController`
+- Method: `featured`
+- Generated Name: `product.featured`
 
 The generation uses kebab-case and removes the "Controller" suffix from class names.
 

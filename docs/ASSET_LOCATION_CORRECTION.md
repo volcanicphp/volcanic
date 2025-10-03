@@ -43,8 +43,8 @@ build: {
 
 ```html
 <link
-    rel="stylesheet"
-    href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
+  rel="stylesheet"
+  href="{{ asset('vendor/volcanic/playgroundStyles.css') }}"
 />
 <script src="{{ asset('vendor/volcanic/playground.js') }}" defer></script>
 ```
@@ -71,9 +71,9 @@ resources/dist/            ← Correct location
 
 ### 4. Updated Documentation
 
--   `docs/ASSET_COMPILATION.md` - Updated all paths and added Spatie publishing explanation
--   `docs/CDN_TO_VITE_MIGRATION.md` - Corrected build output locations
--   `.gitignore` - Updated comment to reference `resources/dist`
+- `docs/ASSET_COMPILATION.md` - Updated all paths and added Spatie publishing explanation
+- `docs/CDN_TO_VITE_MIGRATION.md` - Corrected build output locations
+- `.gitignore` - Updated comment to reference `resources/dist`
 
 ## How It Works
 
@@ -88,9 +88,9 @@ resources/dist/            ← Correct location
 
 1. **Install package**: `composer require volcanic/volcanic`
 2. **Publish assets** (automatic with `->hasAssets()` in service provider):
-    ```bash
-    php artisan vendor:publish --tag="volcanic-assets"
-    ```
+   ```bash
+   php artisan vendor:publish --tag="volcanic-assets"
+   ```
 3. **Published to**: `public/vendor/volcanic/` on user's server
 4. **Assets loaded from**: `{{ asset('vendor/volcanic/playground.js') }}`
 
@@ -111,10 +111,10 @@ $package
 
 When `->hasAssets()` is called:
 
--   **Source**: `resources/dist/*` (in package)
--   **Destination**: `public/vendor/volcanic/*` (on user's server)
--   **Tag**: `volcanic-assets`
--   **Command**: `php artisan vendor:publish --tag="volcanic-assets"`
+- **Source**: `resources/dist/*` (in package)
+- **Destination**: `public/vendor/volcanic/*` (on user's server)
+- **Tag**: `volcanic-assets`
+- **Command**: `php artisan vendor:publish --tag="volcanic-assets"`
 
 ## Benefits of This Approach
 
@@ -153,6 +153,6 @@ asset('vendor/volcanic/playground.js') }}
 
 ## References
 
--   [Spatie Package Tools Documentation](https://github.com/spatie/laravel-package-tools)
--   [Laravel Package Asset Publishing](https://laravel.com/docs/packages#public-assets)
--   Volcanic Configuration: `src/VolcanicServiceProvider.php`
+- [Spatie Package Tools Documentation](https://github.com/spatie/laravel-package-tools)
+- [Laravel Package Asset Publishing](https://laravel.com/docs/packages#public-assets)
+- Volcanic Configuration: `src/VolcanicServiceProvider.php`

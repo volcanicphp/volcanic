@@ -48,23 +48,20 @@ public function customMethod(): JsonResponse
 ### Modified Files:
 
 1. **`src/Attributes/ApiRoute.php`**
-
-    - Updated constructor to use empty array as default for methods
-    - Added `getMethods()` method that accepts optional method name parameter
-    - Added `determineHttpMethodsFromName()` method for auto-detection logic
+   - Updated constructor to use empty array as default for methods
+   - Added `getMethods()` method that accepts optional method name parameter
+   - Added `determineHttpMethodsFromName()` method for auto-detection logic
 
 2. **`src/Services/ApiRouteDiscoveryService.php`**
-
-    - Updated to pass method name to `getMethods()` for auto-detection
+   - Updated to pass method name to `getMethods()` for auto-detection
 
 3. **`tests/Unit/ApiRouteAttributeTest.php`**
-
-    - Added comprehensive tests for HTTP method auto-detection
-    - Added tests for explicit method override behavior
+   - Added comprehensive tests for HTTP method auto-detection
+   - Added tests for explicit method override behavior
 
 4. **`tests/Feature/HttpMethodDetectionTest.php`**
-    - Added integration tests to verify complete workflow
-    - Tests route registration with correct HTTP methods
+   - Added integration tests to verify complete workflow
+   - Tests route registration with correct HTTP methods
 
 ## Benefits
 
@@ -76,8 +73,8 @@ public function customMethod(): JsonResponse
 
 ## Testing
 
--   127 tests passing (395 assertions)
--   Full test coverage for both unit and integration scenarios
--   Validates both auto-detection and explicit override behaviors
+- 127 tests passing (395 assertions)
+- Full test coverage for both unit and integration scenarios
+- Validates both auto-detection and explicit override behaviors
 
 This feature significantly improves the developer experience while maintaining the flexibility and type safety that the Volcanic package is built on.

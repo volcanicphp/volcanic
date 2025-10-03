@@ -49,21 +49,22 @@ Fonts are referenced with the base path `/vendor/volcanic/` configured in `vite.
 
 ```javascript
 export default defineConfig({
-    base: "/vendor/volcanic/", // ← Critical for font paths
-    build: {
-        outDir: "resources/dist",
-        // ...
-    },
-});
+  base: "/vendor/volcanic/", // ← Critical for font paths
+  build: {
+    outDir: "resources/dist",
+    // ...
+  },
+})
 ```
 
 This ensures Font Awesome CSS contains correct paths:
 
 ```css
 @font-face {
-    font-family: "Font Awesome 6 Free";
-    src: url(/vendor/volcanic/fa-solid-900.woff2) format("woff2"), url(/vendor/volcanic/fa-solid-900.ttf)
-            format("truetype");
+  font-family: "Font Awesome 6 Free";
+  src:
+    url(/vendor/volcanic/fa-solid-900.woff2) format("woff2"),
+    url(/vendor/volcanic/fa-solid-900.ttf) format("truetype");
 }
 ```
 
@@ -106,30 +107,30 @@ This ensures Font Awesome CSS contains correct paths:
 
 1. **Edit source files**:
 
-    ```bash
-    vim resources/js/playground.js
-    vim resources/css/playground.css
-    ```
+   ```bash
+   vim resources/js/playground.js
+   vim resources/css/playground.css
+   ```
 
 2. **Rebuild assets**:
 
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 
 3. **Test changes** (in a test Laravel app):
 
-    ```bash
-    cd /path/to/test-laravel-app
-    php artisan vendor:publish --tag="volcanic-assets" --force
-    php artisan serve
-    ```
+   ```bash
+   cd /path/to/test-laravel-app
+   php artisan vendor:publish --tag="volcanic-assets" --force
+   php artisan serve
+   ```
 
 4. **Commit compiled assets**:
-    ```bash
-    git add resources/dist/
-    git commit -m "chore: rebuild playground assets"
-    ```
+   ```bash
+   git add resources/dist/
+   git commit -m "chore: rebuild playground assets"
+   ```
 
 ### Automated Publishing
 
@@ -137,14 +138,14 @@ Users can add this to their `composer.json` to auto-publish on install/update:
 
 ```json
 {
-    "scripts": {
-        "post-install-cmd": [
-            "@php artisan vendor:publish --tag=volcanic-assets --ansi --force"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=volcanic-assets --ansi --force"
-        ]
-    }
+  "scripts": {
+    "post-install-cmd": [
+      "@php artisan vendor:publish --tag=volcanic-assets --ansi --force"
+    ],
+    "post-update-cmd": [
+      "@php artisan vendor:publish --tag=volcanic-assets --ansi --force"
+    ]
+  }
 }
 ```
 
@@ -196,55 +197,55 @@ output: {
 name: Build Assets
 
 on:
-    push:
-        paths:
-            - "resources/js/**"
-            - "resources/css/**"
-            - "package.json"
-            - "vite.config.js"
+  push:
+    paths:
+      - "resources/js/**"
+      - "resources/css/**"
+      - "package.json"
+      - "vite.config.js"
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "18"
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Build assets
-              run: npm run build
+      - name: Build assets
+        run: npm run build
 
-            - name: Commit changes
-              run: |
-                  git config user.name "GitHub Actions"
-                  git config user.email "actions@github.com"
-                  git add resources/dist/
-                  git diff --quiet && git diff --staged --quiet || git commit -m "chore: rebuild assets"
-                  git push
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add resources/dist/
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: rebuild assets"
+          git push
 ```
 
 ## Production Checklist
 
 Before releasing a new version:
 
--   [ ] `npm run build` executed
--   [ ] `resources/dist/` committed to git
--   [ ] Font paths verified: `grep "url(/vendor/volcanic" resources/dist/playgroundStyles.css`
--   [ ] JS file size < 60 KB uncompressed
--   [ ] CSS file size < 100 KB uncompressed
--   [ ] All Font Awesome fonts present in `resources/dist/`
--   [ ] Tested in fresh Laravel app with published assets
--   [ ] Browser console has no errors
--   [ ] Network tab shows 200 for all assets (no 404s)
+- [ ] `npm run build` executed
+- [ ] `resources/dist/` committed to git
+- [ ] Font paths verified: `grep "url(/vendor/volcanic" resources/dist/playgroundStyles.css`
+- [ ] JS file size < 60 KB uncompressed
+- [ ] CSS file size < 100 KB uncompressed
+- [ ] All Font Awesome fonts present in `resources/dist/`
+- [ ] Tested in fresh Laravel app with published assets
+- [ ] Browser console has no errors
+- [ ] Network tab shows 200 for all assets (no 404s)
 
 ## References
 
--   Spatie Package Tools: https://github.com/spatie/laravel-package-tools
--   Laravel Asset Publishing: https://laravel.com/docs/packages#public-assets
--   Vite Base Option: https://vitejs.dev/config/shared-options.html#base
+- Spatie Package Tools: https://github.com/spatie/laravel-package-tools
+- Laravel Asset Publishing: https://laravel.com/docs/packages#public-assets
+- Vite Base Option: https://vitejs.dev/config/shared-options.html#base
