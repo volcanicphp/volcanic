@@ -63,7 +63,7 @@ test('playground controller is registered', function (): void {
 
 test('playground schema controller is registered', function (): void {
     $routes = Route::getRoutes();
-    $schemaRoute = $routes->getByName('volcanic.playground.schema');
+    $schemaRoute = $routes->getByName('volcanic.schema');
 
     expect($schemaRoute)->not->toBeNull();
     expect($schemaRoute->getActionName())->toContain('PlaygroundSchemaController');
@@ -145,6 +145,6 @@ test('schema service includes all application routes', function (): void {
     expect($adminRoute['prefix'])->toBe('admin');
 
     // Verify internal routes are excluded
-    $internalRoutes = $routes->filter(fn ($route) => str_starts_with($route['uri'], '_ignition') || str_starts_with($route['uri'], 'sanctum'));
+    $internalRoutes = $routes->filter(fn ($route): bool => str_starts_with((string) $route['uri'], '_ignition') || str_starts_with((string) $route['uri'], 'sanctum'));
     expect($internalRoutes)->toBeEmpty();
 });

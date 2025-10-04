@@ -81,13 +81,7 @@ class SchemaService
             'vendor',
         ];
 
-        foreach ($skipPatterns as $pattern) {
-            if (str_contains($uri, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($skipPatterns, fn ($pattern): bool => str_contains($uri, (string) $pattern));
     }
 
     /**
@@ -105,7 +99,7 @@ class SchemaService
 
         // Check if it's an API route
         $apiPrefix = config('volcanic.default_api_prefix', 'api');
-        if (str_starts_with($uri, $apiPrefix)) {
+        if (str_starts_with($uri, (string) $apiPrefix)) {
             return 'api';
         }
 

@@ -65,10 +65,10 @@ class VolcanicServiceProvider extends PackageServiceProvider
      */
     protected function registerPlaygroundRoutes(): void
     {
-        Route::prefix('volcanic/playground')
-            ->group(function (): void {
-                Route::get('/', PlaygroundController::class)->name('volcanic.playground');
-                Route::get('/schema', PlaygroundSchemaController::class)->name('volcanic.playground.schema');
-            });
+        $playgroundUri = config('volcanic.playground.uri', 'volcanic/playground');
+
+        Route::get($playgroundUri, PlaygroundController::class)->name('volcanic.playground');
+
+        Route::get('__schema__', PlaygroundSchemaController::class)->name('volcanic.schema');
     }
 }

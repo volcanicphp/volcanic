@@ -107,10 +107,12 @@ return [
     | and development environments. You can customize access control using
     | Playground::canAccess() in your AppServiceProvider.
     |
+    | You can customize the playground and schema URIs to any endpoint you prefer.
+    |
     */
     'playground' => [
         'enabled' => env('VOLCANIC_PLAYGROUND_ENABLED', true),
-        'route_prefix' => 'volcanic/playground',
+        'uri' => env('VOLCANIC_PLAYGROUND_URI', 'volcanic/playground'),
     ],
 
 ];

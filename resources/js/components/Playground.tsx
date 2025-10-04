@@ -121,7 +121,7 @@ export default function Playground() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
-    fetch("/volcanic/playground/schema")
+    fetch("/__schema__")
       .then((res) => res.json())
       .then((data) => setSchema(data))
       .catch((err) => console.error("Failed to load schema:", err))
@@ -355,14 +355,6 @@ export default function Playground() {
               </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setResponseTab("raw")}
-          >
-            <Code className="h-4 w-4 mr-1" />
-            View Raw HTML
-          </Button>
         </div>
       )
     }
@@ -512,7 +504,7 @@ export default function Playground() {
                   <TabsList>
                     <TabsTrigger value="params">Params</TabsTrigger>
                     <TabsTrigger value="headers">Headers</TabsTrigger>
-                    <TabsTrigger value="auth">Auth</TabsTrigger>
+                    <TabsTrigger value="auth">Authorization</TabsTrigger>
                     <TabsTrigger value="body">Body</TabsTrigger>
                   </TabsList>
 
@@ -617,30 +609,27 @@ export default function Playground() {
                   </TabsContent>
 
                   <TabsContent value="auth" className="space-y-4">
-                    <div>
-                      <Label>Auth Type</Label>
-                      <Select
-                        value={request.auth.type}
-                        onValueChange={(value) =>
-                          setRequest({
-                            ...request,
-                            auth: {
-                              ...request.auth,
-                              type: value as "none" | "bearer" | "basic",
-                            },
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="bearer">Bearer Token</SelectItem>
-                          <SelectItem value="basic">Basic Auth</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Select
+                      value={request.auth.type}
+                      onValueChange={(value) =>
+                        setRequest({
+                          ...request,
+                          auth: {
+                            ...request.auth,
+                            type: value as "none" | "bearer" | "basic",
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="bearer">Bearer Token</SelectItem>
+                        <SelectItem value="basic">Basic Auth</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {request.auth.type === "bearer" && (
                       <div>
@@ -698,26 +687,23 @@ export default function Playground() {
                   </TabsContent>
 
                   <TabsContent value="body" className="space-y-4">
-                    <div>
-                      <Label>Body Type</Label>
-                      <Select
-                        value={request.bodyType}
-                        onValueChange={(value) =>
-                          setRequest({
-                            ...request,
-                            bodyType: value as "json" | "form",
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="json">JSON</SelectItem>
-                          <SelectItem value="form">Form Data</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Select
+                      value={request.bodyType}
+                      onValueChange={(value) =>
+                        setRequest({
+                          ...request,
+                          bodyType: value as "json" | "form",
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="json">JSON</SelectItem>
+                        <SelectItem value="form">Form Data</SelectItem>
+                      </SelectContent>
+                    </Select>
 
                     {request.bodyType === "json" && (
                       <div>

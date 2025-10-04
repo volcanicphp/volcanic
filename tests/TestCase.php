@@ -16,15 +16,22 @@ class TestCase extends Orchestra
         parent::setUp();
     }
 
-    protected function getPackageProviders($app)
+    /**
+     * {@inheritDoc}
+     */
+    protected function getPackageProviders(mixed $app)
     {
         return [
             VolcanicServiceProvider::class,
         ];
     }
 
-    public function getEnvironmentSetUp($app): void
+    /**
+     * {@inheritDoc}
+     */
+    public function getEnvironmentSetUp(mixed $app): void
     {
         config()->set('database.default', 'testing');
+        config()->set('app.env', 'testing');
     }
 }
