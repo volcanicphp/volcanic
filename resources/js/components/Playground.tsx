@@ -25,6 +25,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { JsonView } from "react-json-view-lite"
 import "react-json-view-lite/dist/index.css"
 import {
@@ -463,6 +464,9 @@ export default function Playground() {
               <SidebarTrigger />
               <Separator orientation="vertical" className="h-6" />
               <h1 className="text-lg font-semibold">API Playground</h1>
+              <div className="ml-auto">
+                <ThemeToggle />
+              </div>
             </header>
 
             {/* Request Panel */}
