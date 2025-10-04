@@ -39,6 +39,7 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  X,
 } from "lucide-react"
 
 // Register languages for syntax highlighting
@@ -102,6 +103,18 @@ interface ResponseData {
 
 type DeviceSize = "mobile" | "tablet" | "desktop"
 
+interface RequestTab {
+  id: string
+  label: string
+  method: string
+  uri: string
+  request: RequestConfig
+  response: ResponseData | null
+  responseTab: string
+  deviceSize: DeviceSize
+  loading: boolean
+}
+
 // Common HTTP headers and their suggested values
 const HEADER_SUGGESTIONS: Record<string, string[]> = {
   Accept: [
@@ -156,28 +169,110 @@ export default function Playground() {
   const [selectedGroup, setSelectedGroup] = useQueryState("group", {
     defaultValue: "",
   })
-  const [searchQuery, setSearchQuery] = useState("")
-  const [request, setRequest] = useState<RequestConfig>({
-    method: "GET",
-    url: "",
-    params: [],
-    headers: [],
-    auth: {
-      type: "none",
-      token: "",
-      username: "",
-      password: "",
-    },
-    bodyType: "json",
-    body: "",
-    formData: [],
+  const [activeTabId, setActiveTabId] = useQueryState("tab", {
+    defaultValue: "",
   })
-  const [response, setResponse] = useState<ResponseData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [responseTab, setResponseTab] = useState("body")
-  const [deviceSize, setDeviceSize] = useState<DeviceSize>("desktop")
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [tabs, setTabs] = useState<RequestTab[]>(() => {
+    // Load tabs from localStorage
+    const saved = localStorage.getItem("volcanic-tabs")
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch {
+        return []
+      }
+    }
+    return []
+  })
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  // Save tabs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("volcanic-tabs", JSON.stringify(tabs))
+  }, [tabs])
+
+  // Get active tab
+  const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0] || null
+
+  // Helper functions for tab management
+  const createTab = (route: Route): RequestTab => {
+    return {
+      id: `${route.method}:${route.uri}:${Date.now()}`,
+      label: route.uri,
+      method: route.method,
+      uri: route.uri,
+      request: {
+        method: route.method,
+        url: route.uri,
+        params: [],
+        headers: [],
+        auth: {
+          type: "none",
+          token: "",
+          username: "",
+          password: "",
+        },
+        bodyType: "json",
+        body: "",
+        formData: [],
+      },
+      response: null,
+      responseTab: "body",
+      deviceSize: "desktop",
+      loading: false,
+    }
+  }
+
+  const openTab = (route: Route) => {
+    // Check if tab already exists for this route
+    const existingTab = tabs.find(
+      (t) => t.method === route.method && t.uri === route.uri,
+    )
+
+    if (existingTab) {
+      // Switch to existing tab
+      setActiveTabId(existingTab.id)
+      setSelectedRouteUri(`${route.method}:${route.uri}`)
+    } else {
+      // Create new tab
+      const newTab = createTab(route)
+      setTabs([...tabs, newTab])
+      setActiveTabId(newTab.id)
+      setSelectedRouteUri(`${route.method}:${route.uri}`)
+    }
+  }
+
+  const closeTab = (tabId: string) => {
+    const newTabs = tabs.filter((t) => t.id !== tabId)
+    setTabs(newTabs)
+
+    // If closing active tab, switch to another tab
+    if (tabId === activeTabId) {
+      const activeIndex = tabs.findIndex((t) => t.id === tabId)
+      const nextTab = newTabs[activeIndex] || newTabs[activeIndex - 1] || null
+      if (nextTab) {
+        setActiveTabId(nextTab.id)
+        setSelectedRouteUri(`${nextTab.method}:${nextTab.uri}`)
+      } else {
+        setActiveTabId("")
+        setSelectedRouteUri("")
+      }
+    }
+  }
+
+  const updateActiveTab = (updates: Partial<RequestTab>) => {
+    if (!activeTab) return
+    setTabs(tabs.map((t) => (t.id === activeTab.id ? { ...t, ...updates } : t)))
+  }
+
+  const updateActiveTabRequest = (updates: Partial<RequestConfig>) => {
+    if (!activeTab) return
+    updateActiveTab({
+      request: { ...activeTab.request, ...updates },
+    })
+  }
 
   // Detect theme changes
   useEffect(() => {
@@ -231,11 +326,6 @@ export default function Playground() {
     schema.routes.find((r) => `${r.method}:${r.uri}` === selectedRouteUri) ||
     null
 
-  // Update selected route in URL
-  const handleRouteSelect = (route: Route) => {
-    setSelectedRouteUri(`${route.method}:${route.uri}`)
-  }
-
   const currentGroup = selectedGroup || groupNames[0] || "web"
   const filteredRoutes = (routeGroups[currentGroup] || []).filter(
     (route) =>
@@ -245,19 +335,17 @@ export default function Playground() {
   )
 
   const selectRoute = (route: Route) => {
-    handleRouteSelect(route)
-    setRequest((prev) => ({
-      ...prev,
-      url: route.uri,
-      method: route.method,
-    }))
+    openTab(route)
   }
 
   const sendRequest = async () => {
-    if (!request.url) return
+    if (!activeTab || !activeTab.request.url) return
 
-    setLoading(true)
+    const request = activeTab.request
     const startTime = Date.now()
+
+    // Set loading state
+    updateActiveTab({ loading: true, response: null })
 
     try {
       let url = request.url
@@ -332,34 +420,38 @@ export default function Playground() {
         responseHeaders[key] = value
       })
 
-      setResponse({
-        status: res.status,
-        statusText: res.statusText,
-        data,
-        headers: responseHeaders,
-        time,
-        contentType,
-        isHtml,
-        isJson,
-        isText,
+      updateActiveTab({
+        response: {
+          status: res.status,
+          statusText: res.statusText,
+          data,
+          headers: responseHeaders,
+          time,
+          contentType,
+          isHtml,
+          isJson,
+          isText,
+        },
+        responseTab: "body",
+        loading: false,
       })
-      setResponseTab("body")
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred"
-      setResponse({
-        status: 0,
-        statusText: "Error",
-        data: errorMessage,
-        headers: {},
-        time: Date.now() - startTime,
-        contentType: "text/plain",
-        isHtml: false,
-        isJson: false,
-        isText: true,
+      updateActiveTab({
+        response: {
+          status: 0,
+          statusText: "Error",
+          data: errorMessage,
+          headers: {},
+          time: Date.now() - startTime,
+          contentType: "text/plain",
+          isHtml: false,
+          isJson: false,
+          isText: true,
+        },
+        loading: false,
       })
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -394,7 +486,10 @@ export default function Playground() {
   }
 
   const renderResponseBody = () => {
-    if (!response) return null
+    if (!activeTab?.response) return null
+
+    const response = activeTab.response
+    const deviceSize = activeTab.deviceSize
 
     if (response.isHtml) {
       return (
@@ -405,7 +500,7 @@ export default function Playground() {
               <Button
                 variant={deviceSize === "mobile" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setDeviceSize("mobile")}
+                onClick={() => updateActiveTab({ deviceSize: "mobile" })}
               >
                 <Smartphone className="h-4 w-4 mr-1" />
                 Mobile
@@ -413,7 +508,7 @@ export default function Playground() {
               <Button
                 variant={deviceSize === "tablet" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setDeviceSize("tablet")}
+                onClick={() => updateActiveTab({ deviceSize: "tablet" })}
               >
                 <Tablet className="h-4 w-4 mr-1" />
                 Tablet
@@ -421,7 +516,7 @@ export default function Playground() {
               <Button
                 variant={deviceSize === "desktop" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setDeviceSize("desktop")}
+                onClick={() => updateActiveTab({ deviceSize: "desktop" })}
               >
                 <Monitor className="h-4 w-4 mr-1" />
                 Desktop
@@ -610,9 +705,46 @@ export default function Playground() {
           <div className="flex flex-col h-full">
             {/* Header */}
             <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="h-6" />
-              <h1 className="text-lg font-semibold">API Playground</h1>
+              <SidebarTrigger className="md:hidden" />
+              <Separator orientation="vertical" className="h-6 md:hidden" />
+
+              {/* Tab Bar */}
+              {tabs.length > 0 ? (
+                <div className="flex-1 flex items-center gap-2 overflow-x-auto">
+                  {tabs.map((tab) => (
+                    <div
+                      key={tab.id}
+                      onClick={() => setActiveTabId(tab.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors ${
+                        tab.id === activeTabId
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted hover:bg-muted/80"
+                      }`}
+                    >
+                      <span
+                        className={`text-xs font-semibold px-1.5 py-0.5 rounded ${getMethodColor(tab.method)}`}
+                      >
+                        {tab.method}
+                      </span>
+                      <span className="text-sm truncate max-w-[200px]">
+                        {tab.uri}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          closeTab(tab.id)
+                        }}
+                        className="hover:bg-background/20 rounded-sm p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <h1 className="text-lg font-semibold">API Playground</h1>
+              )}
+
               <div className="ml-auto">
                 <ThemeToggle />
               </div>
@@ -620,312 +752,86 @@ export default function Playground() {
 
             {/* Request Panel */}
             <div className="flex-1 overflow-auto p-6 space-y-6">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Select
-                    value={request.method}
-                    onValueChange={(value) =>
-                      setRequest({ ...request, method: value })
-                    }
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GET">GET</SelectItem>
-                      <SelectItem value="POST">POST</SelectItem>
-                      <SelectItem value="PUT">PUT</SelectItem>
-                      <SelectItem value="PATCH">PATCH</SelectItem>
-                      <SelectItem value="DELETE">DELETE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Enter URL..."
-                    value={request.url}
-                    onChange={(e) =>
-                      setRequest({ ...request, url: e.target.value })
-                    }
-                    className="flex-1"
-                  />
-                  <Button onClick={sendRequest} disabled={loading}>
-                    <Send className="h-4 w-4 mr-2" />
-                    {loading ? "Sending..." : "Send"}
-                  </Button>
+              {!activeTab ? (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <p>Select a route from the sidebar to get started</p>
                 </div>
-
-                <Tabs defaultValue="params">
-                  <TabsList>
-                    <TabsTrigger value="params">Params</TabsTrigger>
-                    <TabsTrigger value="headers">Headers</TabsTrigger>
-                    <TabsTrigger value="auth">Authorization</TabsTrigger>
-                    <TabsTrigger value="body">Body</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="params" className="space-y-2">
-                    {request.params.map((param, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input
-                          placeholder="Key"
-                          value={param.key}
-                          onChange={(e) => {
-                            const newParams = [...request.params]
-                            newParams[idx].key = e.target.value
-                            setRequest({ ...request, params: newParams })
-                          }}
-                        />
-                        <Input
-                          placeholder="Value"
-                          value={param.value}
-                          onChange={(e) => {
-                            const newParams = [...request.params]
-                            newParams[idx].value = e.target.value
-                            setRequest({ ...request, params: newParams })
-                          }}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newParams = request.params.filter(
-                              (_, i) => i !== idx,
-                            )
-                            setRequest({ ...request, params: newParams })
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setRequest({
-                          ...request,
-                          params: [...request.params, { key: "", value: "" }],
-                        })
-                      }
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Param
-                    </Button>
-                  </TabsContent>
-
-                  <TabsContent value="headers" className="space-y-2">
-                    {request.headers.map((header, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Header Name"
-                            value={header.key}
-                            list={`header-keys-${idx}`}
-                            onChange={(e) => {
-                              const newHeaders = [...request.headers]
-                              newHeaders[idx].key = e.target.value
-                              setRequest({ ...request, headers: newHeaders })
-                            }}
-                          />
-                          <datalist id={`header-keys-${idx}`}>
-                            {COMMON_HEADERS.map((headerName) => (
-                              <option key={headerName} value={headerName} />
-                            ))}
-                          </datalist>
-                        </div>
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Value"
-                            value={header.value}
-                            list={`header-values-${idx}`}
-                            onChange={(e) => {
-                              const newHeaders = [...request.headers]
-                              newHeaders[idx].value = e.target.value
-                              setRequest({ ...request, headers: newHeaders })
-                            }}
-                          />
-                          <datalist id={`header-values-${idx}`}>
-                            {header.key &&
-                              HEADER_SUGGESTIONS[header.key]?.map((value) => (
-                                <option key={value} value={value} />
-                              ))}
-                          </datalist>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newHeaders = request.headers.filter(
-                              (_, i) => i !== idx,
-                            )
-                            setRequest({ ...request, headers: newHeaders })
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setRequest({
-                          ...request,
-                          headers: [...request.headers, { key: "", value: "" }],
-                        })
-                      }
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Header
-                    </Button>
-                  </TabsContent>
-
-                  <TabsContent value="auth" className="space-y-4">
-                    <Select
-                      value={request.auth.type}
-                      onValueChange={(value) =>
-                        setRequest({
-                          ...request,
-                          auth: {
-                            ...request.auth,
-                            type: value as "none" | "bearer" | "basic",
-                          },
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="bearer">Bearer Token</SelectItem>
-                        <SelectItem value="basic">Basic Auth</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {request.auth.type === "bearer" && (
-                      <div className="space-y-2">
-                        <Label>Token</Label>
-                        <Input
-                          placeholder="Enter bearer token..."
-                          value={request.auth.token}
-                          onChange={(e) =>
-                            setRequest({
-                              ...request,
-                              auth: { ...request.auth, token: e.target.value },
-                            })
-                          }
-                        />
-                      </div>
-                    )}
-
-                    {request.auth.type === "basic" && (
-                      <>
-                        <div className="space-y-2">
-                          <Label>Username</Label>
-                          <Input
-                            placeholder="Username"
-                            value={request.auth.username}
-                            onChange={(e) =>
-                              setRequest({
-                                ...request,
-                                auth: {
-                                  ...request.auth,
-                                  username: e.target.value,
-                                },
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Password</Label>
-                          <Input
-                            type="password"
-                            placeholder="Password"
-                            value={request.auth.password}
-                            onChange={(e) =>
-                              setRequest({
-                                ...request,
-                                auth: {
-                                  ...request.auth,
-                                  password: e.target.value,
-                                },
-                              })
-                            }
-                          />
-                        </div>
-                      </>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="body" className="space-y-4">
-                    <Select
-                      value={request.bodyType}
-                      onValueChange={(value) =>
-                        setRequest({
-                          ...request,
-                          bodyType: value as "json" | "form",
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        <SelectItem value="json">JSON</SelectItem>
-                        <SelectItem value="form">Form Data</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {request.bodyType === "json" && (
-                      <Textarea
-                        placeholder='{"key": "value"}'
-                        value={request.body}
-                        onChange={(e) =>
-                          setRequest({ ...request, body: e.target.value })
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Select
+                        value={activeTab.request.method}
+                        onValueChange={(value) =>
+                          updateActiveTabRequest({ method: value })
                         }
-                        rows={10}
-                        className="font-mono text-sm"
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GET">GET</SelectItem>
+                          <SelectItem value="POST">POST</SelectItem>
+                          <SelectItem value="PUT">PUT</SelectItem>
+                          <SelectItem value="PATCH">PATCH</SelectItem>
+                          <SelectItem value="DELETE">DELETE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="Enter URL..."
+                        value={activeTab.request.url}
+                        onChange={(e) =>
+                          updateActiveTabRequest({ url: e.target.value })
+                        }
+                        className="flex-1"
                       />
-                    )}
+                      <Button
+                        onClick={sendRequest}
+                        disabled={activeTab.loading}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        {activeTab.loading ? "Sending..." : "Send"}
+                      </Button>
+                    </div>
 
-                    {request.bodyType === "form" && (
-                      <div className="space-y-2">
-                        {request.formData.map((field, idx) => (
+                    <Tabs defaultValue="params">
+                      <TabsList>
+                        <TabsTrigger value="params">Params</TabsTrigger>
+                        <TabsTrigger value="headers">Headers</TabsTrigger>
+                        <TabsTrigger value="auth">Authorization</TabsTrigger>
+                        <TabsTrigger value="body">Body</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="params" className="space-y-2">
+                        {activeTab.request.params.map((param, idx) => (
                           <div key={idx} className="flex gap-2">
                             <Input
                               placeholder="Key"
-                              value={field.key}
+                              value={param.key}
                               onChange={(e) => {
-                                const newFormData = [...request.formData]
-                                newFormData[idx].key = e.target.value
-                                setRequest({
-                                  ...request,
-                                  formData: newFormData,
-                                })
+                                const newParams = [...activeTab.request.params]
+                                newParams[idx].key = e.target.value
+                                updateActiveTabRequest({ params: newParams })
                               }}
                             />
                             <Input
                               placeholder="Value"
-                              value={field.value}
+                              value={param.value}
                               onChange={(e) => {
-                                const newFormData = [...request.formData]
-                                newFormData[idx].value = e.target.value
-                                setRequest({
-                                  ...request,
-                                  formData: newFormData,
-                                })
+                                const newParams = [...activeTab.request.params]
+                                newParams[idx].value = e.target.value
+                                updateActiveTabRequest({ params: newParams })
                               }}
                             />
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => {
-                                const newFormData = request.formData.filter(
-                                  (_, i) => i !== idx,
-                                )
-                                setRequest({
-                                  ...request,
-                                  formData: newFormData,
-                                })
+                                const newParams =
+                                  activeTab.request.params.filter(
+                                    (_, i) => i !== idx,
+                                  )
+                                updateActiveTabRequest({ params: newParams })
                               }}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -936,95 +842,357 @@ export default function Playground() {
                           variant="outline"
                           size="sm"
                           onClick={() =>
-                            setRequest({
-                              ...request,
-                              formData: [
-                                ...request.formData,
+                            updateActiveTabRequest({
+                              params: [
+                                ...activeTab.request.params,
                                 { key: "", value: "" },
                               ],
                             })
                           }
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Field
+                          Add Param
                         </Button>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </div>
+                      </TabsContent>
 
-              {/* Response Panel */}
-              {response && (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="bg-muted px-4 py-3 border-b flex items-center justify-between">
-                    <h3 className="font-semibold">Response</h3>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-sm font-semibold px-3 py-1 rounded ${getStatusColor(response.status)}`}
-                      >
-                        {response.status} {response.statusText}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {response.time}ms
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-4 overflow-x-hidden">
-                    <Tabs value={responseTab} onValueChange={setResponseTab}>
-                      <TabsList>
-                        <TabsTrigger value="body">Body</TabsTrigger>
-                        <TabsTrigger value="headers">Headers</TabsTrigger>
-                        {response.isHtml && (
-                          <TabsTrigger value="raw">Raw HTML</TabsTrigger>
+                      <TabsContent value="headers" className="space-y-2">
+                        {activeTab.request.headers.map((header, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Header Name"
+                                value={header.key}
+                                list={`header-keys-${idx}`}
+                                onChange={(e) => {
+                                  const newHeaders = [
+                                    ...activeTab.request.headers,
+                                  ]
+                                  newHeaders[idx].key = e.target.value
+                                  updateActiveTabRequest({
+                                    headers: newHeaders,
+                                  })
+                                }}
+                              />
+                              <datalist id={`header-keys-${idx}`}>
+                                {COMMON_HEADERS.map((headerName) => (
+                                  <option key={headerName} value={headerName} />
+                                ))}
+                              </datalist>
+                            </div>
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Value"
+                                value={header.value}
+                                list={`header-values-${idx}`}
+                                onChange={(e) => {
+                                  const newHeaders = [
+                                    ...activeTab.request.headers,
+                                  ]
+                                  newHeaders[idx].value = e.target.value
+                                  updateActiveTabRequest({
+                                    headers: newHeaders,
+                                  })
+                                }}
+                              />
+                              <datalist id={`header-values-${idx}`}>
+                                {header.key &&
+                                  HEADER_SUGGESTIONS[header.key]?.map(
+                                    (value) => (
+                                      <option key={value} value={value} />
+                                    ),
+                                  )}
+                              </datalist>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newHeaders =
+                                  activeTab.request.headers.filter(
+                                    (_, i) => i !== idx,
+                                  )
+                                updateActiveTabRequest({ headers: newHeaders })
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            updateActiveTabRequest({
+                              headers: [
+                                ...activeTab.request.headers,
+                                { key: "", value: "" },
+                              ],
+                            })
+                          }
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Header
+                        </Button>
+                      </TabsContent>
+
+                      <TabsContent value="auth" className="space-y-4">
+                        <Select
+                          value={activeTab.request.auth.type}
+                          onValueChange={(value) =>
+                            updateActiveTabRequest({
+                              auth: {
+                                ...activeTab.request.auth,
+                                type: value as "none" | "bearer" | "basic",
+                              },
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent align="start">
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="bearer">Bearer Token</SelectItem>
+                            <SelectItem value="basic">Basic Auth</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {activeTab.request.auth.type === "bearer" && (
+                          <div className="space-y-2">
+                            <Label>Token</Label>
+                            <Input
+                              placeholder="Enter bearer token..."
+                              value={activeTab.request.auth.token}
+                              onChange={(e) =>
+                                updateActiveTabRequest({
+                                  auth: {
+                                    ...activeTab.request.auth,
+                                    token: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
                         )}
-                      </TabsList>
-                      <TabsContent value="body">
-                        {renderResponseBody()}
+
+                        {activeTab.request.auth.type === "basic" && (
+                          <>
+                            <div className="space-y-2">
+                              <Label>Username</Label>
+                              <Input
+                                placeholder="Username"
+                                value={activeTab.request.auth.username}
+                                onChange={(e) =>
+                                  updateActiveTabRequest({
+                                    auth: {
+                                      ...activeTab.request.auth,
+                                      username: e.target.value,
+                                    },
+                                  })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Password</Label>
+                              <Input
+                                type="password"
+                                placeholder="Password"
+                                value={activeTab.request.auth.password}
+                                onChange={(e) =>
+                                  updateActiveTabRequest({
+                                    auth: {
+                                      ...activeTab.request.auth,
+                                      password: e.target.value,
+                                    },
+                                  })
+                                }
+                              />
+                            </div>
+                          </>
+                        )}
                       </TabsContent>
-                      <TabsContent value="headers">
-                        <div className="space-y-2">
-                          {Object.entries(response.headers).map(
-                            ([key, value]) => (
-                              <div key={key} className="flex gap-2 text-sm">
-                                <span className="font-semibold min-w-[200px]">
-                                  {key}:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {value}
-                                </span>
+
+                      <TabsContent value="body" className="space-y-4">
+                        <Select
+                          value={activeTab.request.bodyType}
+                          onValueChange={(value) =>
+                            updateActiveTabRequest({
+                              bodyType: value as "json" | "form",
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent align="start">
+                            <SelectItem value="json">JSON</SelectItem>
+                            <SelectItem value="form">Form Data</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {activeTab.request.bodyType === "json" && (
+                          <Textarea
+                            placeholder='{"key": "value"}'
+                            value={activeTab.request.body}
+                            onChange={(e) =>
+                              updateActiveTabRequest({ body: e.target.value })
+                            }
+                            rows={10}
+                            className="font-mono text-sm"
+                          />
+                        )}
+
+                        {activeTab.request.bodyType === "form" && (
+                          <div className="space-y-2">
+                            {activeTab.request.formData.map((field, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                <Input
+                                  placeholder="Key"
+                                  value={field.key}
+                                  onChange={(e) => {
+                                    const newFormData = [
+                                      ...activeTab.request.formData,
+                                    ]
+                                    newFormData[idx].key = e.target.value
+                                    updateActiveTabRequest({
+                                      formData: newFormData,
+                                    })
+                                  }}
+                                />
+                                <Input
+                                  placeholder="Value"
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    const newFormData = [
+                                      ...activeTab.request.formData,
+                                    ]
+                                    newFormData[idx].value = e.target.value
+                                    updateActiveTabRequest({
+                                      formData: newFormData,
+                                    })
+                                  }}
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newFormData =
+                                      activeTab.request.formData.filter(
+                                        (_, i) => i !== idx,
+                                      )
+                                    updateActiveTabRequest({
+                                      formData: newFormData,
+                                    })
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
-                            ),
-                          )}
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="raw">
-                        <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
-                          <SyntaxHighlighter
-                            language="html"
-                            style={isDarkMode ? vscDarkPlus : vs}
-                            customStyle={{
-                              margin: 0,
-                              borderRadius: "0.375rem",
-                              fontSize: "0.875rem",
-                              maxWidth: "100%",
-                              overflowX: "hidden",
-                              wordBreak: "break-word",
-                              whiteSpace: "pre-wrap",
-                            }}
-                            wrapLines={true}
-                            wrapLongLines={true}
-                            PreTag="div"
-                          >
-                            {typeof response.data === "string"
-                              ? response.data
-                              : JSON.stringify(response.data, null, 2)}
-                          </SyntaxHighlighter>
-                        </div>
+                            ))}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                updateActiveTabRequest({
+                                  formData: [
+                                    ...activeTab.request.formData,
+                                    { key: "", value: "" },
+                                  ],
+                                })
+                              }
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Field
+                            </Button>
+                          </div>
+                        )}
                       </TabsContent>
                     </Tabs>
                   </div>
-                </div>
+
+                  {/* Response Panel */}
+                  {activeTab.response && (
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="bg-muted px-4 py-3 border-b flex items-center justify-between">
+                        <h3 className="font-semibold">Response</h3>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`text-sm font-semibold px-3 py-1 rounded ${getStatusColor(activeTab.response.status)}`}
+                          >
+                            {activeTab.response.status}{" "}
+                            {activeTab.response.statusText}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {activeTab.response.time}ms
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4 overflow-x-hidden">
+                        <Tabs
+                          value={activeTab.responseTab}
+                          onValueChange={(value) =>
+                            updateActiveTab({ responseTab: value })
+                          }
+                        >
+                          <TabsList>
+                            <TabsTrigger value="body">Body</TabsTrigger>
+                            <TabsTrigger value="headers">Headers</TabsTrigger>
+                            {activeTab.response.isHtml && (
+                              <TabsTrigger value="raw">Raw HTML</TabsTrigger>
+                            )}
+                          </TabsList>
+                          <TabsContent value="body">
+                            {renderResponseBody()}
+                          </TabsContent>
+                          <TabsContent value="headers">
+                            <div className="space-y-2">
+                              {Object.entries(activeTab.response.headers).map(
+                                ([key, value]) => (
+                                  <div key={key} className="flex gap-2 text-sm">
+                                    <span className="font-semibold min-w-[200px]">
+                                      {key}:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {value}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </TabsContent>
+                          <TabsContent value="raw">
+                            <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+                              <SyntaxHighlighter
+                                language="html"
+                                style={isDarkMode ? vscDarkPlus : vs}
+                                customStyle={{
+                                  margin: 0,
+                                  borderRadius: "0.375rem",
+                                  fontSize: "0.875rem",
+                                  maxWidth: "100%",
+                                  overflowX: "hidden",
+                                  wordBreak: "break-word",
+                                  whiteSpace: "pre-wrap",
+                                }}
+                                wrapLines={true}
+                                wrapLongLines={true}
+                                PreTag="div"
+                              >
+                                {typeof activeTab.response.data === "string"
+                                  ? activeTab.response.data
+                                  : JSON.stringify(
+                                      activeTab.response.data,
+                                      null,
+                                      2,
+                                    )}
+                              </SyntaxHighlighter>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
