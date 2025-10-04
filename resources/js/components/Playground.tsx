@@ -29,8 +29,6 @@ import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism"
-import html from "react-syntax-highlighter/dist/esm/languages/prism/markup"
-import json from "react-syntax-highlighter/dist/esm/languages/prism/json"
 import {
   Search,
   Send,
@@ -41,10 +39,6 @@ import {
   Smartphone,
   X,
 } from "lucide-react"
-
-// Register languages for syntax highlighting
-SyntaxHighlighter.registerLanguage("html", html)
-SyntaxHighlighter.registerLanguage("json", json)
 
 // Types
 interface RouteParam {
