@@ -173,7 +173,15 @@ export default function Playground() {
     const saved = localStorage.getItem("volcanic-tabs")
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const loadedTabs = JSON.parse(saved)
+        // Ensure all tabs have routeParams array (migration for old data)
+        return loadedTabs.map((tab: RequestTab) => ({
+          ...tab,
+          request: {
+            ...tab.request,
+            routeParams: tab.request.routeParams || [],
+          },
+        }))
       } catch {
         return []
       }
@@ -207,13 +215,11 @@ export default function Playground() {
     routeParams: KeyValuePair[],
   ): string => {
     let url = uri
-    if (routeParams && Array.isArray(routeParams)) {
-      routeParams.forEach((param) => {
-        if (param.value) {
-          url = url.replace(`{${param.key}}`, param.value)
-        }
-      })
-    }
+    routeParams.forEach((param) => {
+      if (param.value) {
+        url = url.replace(`{${param.key}}`, param.value)
+      }
+    })
     return url
   }
 
