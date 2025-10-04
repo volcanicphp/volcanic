@@ -28,6 +28,12 @@ import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { JsonView } from "react-json-view-lite"
 import "react-json-view-lite/dist/index.css"
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
+import {
+  oneDark,
+  oneLight,
+} from "react-syntax-highlighter/dist/esm/styles/prism"
+import html from "react-syntax-highlighter/dist/esm/languages/prism/markup"
 import {
   Search,
   Send,
@@ -38,6 +44,9 @@ import {
   Smartphone,
   Code,
 } from "lucide-react"
+
+// Register only HTML language for syntax highlighting
+SyntaxHighlighter.registerLanguage("html", html)
 
 // Types
 interface RouteParam {
@@ -120,6 +129,24 @@ export default function Playground() {
   const [responseTab, setResponseTab] = useState("body")
   const [deviceSize, setDeviceSize] = useState<DeviceSize>("desktop")
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"))
+    }
+
+    checkTheme()
+
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     fetch("/__schema__")
@@ -843,12 +870,23 @@ export default function Playground() {
                         </div>
                       </TabsContent>
                       <TabsContent value="raw">
-                        <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
-                          <pre className="text-sm font-mono whitespace-pre-wrap break-words">
+                        <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+                          <SyntaxHighlighter
+                            language="html"
+                            style={isDarkMode ? oneDark : oneLight}
+                            customStyle={{
+                              margin: 0,
+                              borderRadius: "0.375rem",
+                              fontSize: "0.875rem",
+                              maxWidth: "100%",
+                            }}
+                            wrapLines={true}
+                            wrapLongLines={true}
+                          >
                             {typeof response.data === "string"
                               ? response.data
                               : JSON.stringify(response.data, null, 2)}
-                          </pre>
+                          </SyntaxHighlighter>
                         </div>
                       </TabsContent>
                     </Tabs>
