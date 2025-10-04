@@ -53,7 +53,7 @@ class SchemaService
 
                 $routes[] = [
                     'method' => $method,
-                    'uri' => '/'.$uri,
+                    'uri' => $uri === '/' ? $uri : "/$uri",
                     'name' => $route->getName(),
                     'action' => $route->getActionName(),
                     'middleware' => $route->gatherMiddleware(),
@@ -71,14 +71,20 @@ class SchemaService
      */
     protected function shouldSkipRoute(string $uri): bool
     {
+        $playgroundRoute = config('volcanic.playground.uri', 'volcanic/playground');
+
         $skipPatterns = [
-            '_ignition',
-            'sanctum',
-            '_debugbar',
-            'telescope',
-            'horizon',
-            'nova',
-            'vendor',
+            '/__schema__',
+            '/_ignition',
+            '/sanctum',
+            '/_debugbar',
+            '/telescope',
+            '/horizon',
+            '/nova',
+            '/vendor',
+            '/_boost',
+            '/livewire',
+            $playgroundRoute === '/' ? '/' : '/'.$playgroundRoute,
         ];
 
         return array_any($skipPatterns, fn ($pattern): bool => str_contains($uri, (string) $pattern));
