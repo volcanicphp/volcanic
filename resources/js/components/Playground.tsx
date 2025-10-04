@@ -363,7 +363,12 @@ export default function Playground() {
     if (response.isJson && typeof response.data === "object") {
       return (
         <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
-          <JsonView data={response.data} />
+          <div className="json-view">
+            <JsonView
+              data={response.data}
+              shouldExpandNode={(level) => level < 2}
+            />
+          </div>
         </div>
       )
     }
@@ -373,7 +378,9 @@ export default function Playground() {
         const parsed = JSON.parse(response.data)
         return (
           <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
-            <JsonView data={parsed} />
+            <div className="json-view">
+              <JsonView data={parsed} shouldExpandNode={(level) => level < 2} />
+            </div>
           </div>
         )
       } catch {
