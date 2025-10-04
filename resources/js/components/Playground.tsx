@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { useQueryState } from "nuqs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -149,7 +150,12 @@ const COMMON_HEADERS = Object.keys(HEADER_SUGGESTIONS)
 
 export default function Playground() {
   const [schema, setSchema] = useState<Schema>({ routes: [] })
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null)
+  const [selectedRouteUri, setSelectedRouteUri] = useQueryState("route", {
+    defaultValue: "",
+  })
+  const [selectedGroup, setSelectedGroup] = useQueryState("group", {
+    defaultValue: "",
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [request, setRequest] = useState<RequestConfig>({
     method: "GET",
@@ -197,25 +203,49 @@ export default function Playground() {
       .catch((err) => console.error("Failed to load schema:", err))
   }, [])
 
-  const filteredRoutes = schema.routes.filter(
+  // Group routes by prefix
+  const routeGroups = schema.routes.reduce(
+    (groups, route) => {
+      const group = route.prefix || "web"
+      if (!groups[group]) {
+        groups[group] = []
+      }
+      groups[group].push(route)
+      return groups
+    },
+    {} as Record<string, Route[]>,
+  )
+
+  const groupNames = Object.keys(routeGroups).sort()
+  const hasMultipleGroups = groupNames.length > 1
+
+  // Set default group if not set
+  useEffect(() => {
+    if (groupNames.length > 0 && !selectedGroup) {
+      setSelectedGroup(groupNames[0])
+    }
+  }, [groupNames.length, selectedGroup, setSelectedGroup, groupNames])
+
+  // Get selected route from URL
+  const selectedRoute =
+    schema.routes.find((r) => `${r.method}:${r.uri}` === selectedRouteUri) ||
+    null
+
+  // Update selected route in URL
+  const handleRouteSelect = (route: Route) => {
+    setSelectedRouteUri(`${route.method}:${route.uri}`)
+  }
+
+  const currentGroup = selectedGroup || groupNames[0] || "web"
+  const filteredRoutes = (routeGroups[currentGroup] || []).filter(
     (route) =>
       route.uri.toLowerCase().includes(searchQuery.toLowerCase()) ||
       route.method.toLowerCase().includes(searchQuery.toLowerCase()) ||
       route.name?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const groupedRoutes = filteredRoutes.reduce(
-    (acc, route) => {
-      const prefix = route.prefix || "web"
-      if (!acc[prefix]) acc[prefix] = []
-      acc[prefix].push(route)
-      return acc
-    },
-    {} as Record<string, Route[]>,
-  )
-
   const selectRoute = (route: Route) => {
-    setSelectedRoute(route)
+    handleRouteSelect(route)
     setRequest((prev) => ({
       ...prev,
       url: route.uri,
@@ -506,9 +536,36 @@ export default function Playground() {
         <Sidebar>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>API Routes</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                {hasMultipleGroups ? "Routes" : "API Routes"}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
-                <div className="px-2 pb-2">
+                {/* Group tabs - only show if multiple groups */}
+                {hasMultipleGroups && (
+                  <Tabs
+                    value={currentGroup}
+                    onValueChange={setSelectedGroup}
+                    className="w-full"
+                  >
+                    <TabsList className="w-full grid grid-cols-auto gap-1 h-auto p-1">
+                      {groupNames.map((group) => (
+                        <TabsTrigger
+                          key={group}
+                          value={group}
+                          className="capitalize text-xs"
+                        >
+                          {group}
+                          <span className="ml-1 text-muted-foreground">
+                            ({routeGroups[group]?.length || 0})
+                          </span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                )}
+
+                {/* Search */}
+                <div className="px-2 pb-2 pt-2">
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -519,39 +576,28 @@ export default function Playground() {
                     />
                   </div>
                 </div>
+
+                {/* Routes list */}
                 <SidebarMenu>
-                  {Object.entries(groupedRoutes).map(([prefix, routes]) => (
-                    <div key={prefix}>
-                      {prefix !== "web" && (
-                        <div className="px-2 py-1">
-                          <span className="text-xs font-semibold text-muted-foreground uppercase">
-                            {prefix}
-                          </span>
-                        </div>
-                      )}
-                      {routes.map((route, idx) => (
-                        <SidebarMenuItem
-                          key={`${route.method}-${route.uri}-${idx}`}
+                  {filteredRoutes.map((route, idx) => (
+                    <SidebarMenuItem
+                      key={`${route.method}-${route.uri}-${idx}`}
+                    >
+                      <SidebarMenuButton
+                        onClick={() => selectRoute(route)}
+                        isActive={
+                          selectedRoute?.uri === route.uri &&
+                          selectedRoute?.method === route.method
+                        }
+                      >
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded ${getMethodColor(route.method)}`}
                         >
-                          <SidebarMenuButton
-                            onClick={() => selectRoute(route)}
-                            isActive={
-                              selectedRoute?.uri === route.uri &&
-                              selectedRoute?.method === route.method
-                            }
-                          >
-                            <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded ${getMethodColor(route.method)}`}
-                            >
-                              {route.method}
-                            </span>
-                            <span className="truncate text-sm">
-                              {route.uri}
-                            </span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </div>
+                          {route.method}
+                        </span>
+                        <span className="truncate text-sm">{route.uri}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
