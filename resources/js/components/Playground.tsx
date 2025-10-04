@@ -101,6 +101,52 @@ interface ResponseData {
 
 type DeviceSize = "mobile" | "tablet" | "desktop"
 
+// Common HTTP headers and their suggested values
+const HEADER_SUGGESTIONS: Record<string, string[]> = {
+  Accept: [
+    "application/json",
+    "application/xml",
+    "text/html",
+    "text/plain",
+    "application/pdf",
+    "*/*",
+  ],
+  "Content-Type": [
+    "application/json",
+    "application/x-www-form-urlencoded",
+    "multipart/form-data",
+    "application/xml",
+    "text/html",
+    "text/plain",
+  ],
+  Authorization: ["Bearer ", "Basic "],
+  "Cache-Control": [
+    "no-cache",
+    "no-store",
+    "max-age=3600",
+    "must-revalidate",
+    "public",
+    "private",
+  ],
+  "User-Agent": [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    "PostmanRuntime/7.32.0",
+  ],
+  "Accept-Encoding": ["gzip, deflate, br", "gzip", "deflate"],
+  "Accept-Language": ["en-US,en;q=0.9", "en-GB,en;q=0.9", "pt-BR,pt;q=0.9"],
+  Connection: ["keep-alive", "close"],
+  Origin: ["http://localhost", "https://example.com"],
+  Referer: ["http://localhost", "https://example.com"],
+  "X-Requested-With": ["XMLHttpRequest"],
+  "X-CSRF-Token": [""],
+  "X-API-Key": [""],
+  "If-Modified-Since": [""],
+  "If-None-Match": [""],
+}
+
+const COMMON_HEADERS = Object.keys(HEADER_SUGGESTIONS)
+
 export default function Playground() {
   const [schema, setSchema] = useState<Schema>({ routes: [] })
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null)
@@ -622,24 +668,41 @@ export default function Playground() {
                   <TabsContent value="headers" className="space-y-2">
                     {request.headers.map((header, idx) => (
                       <div key={idx} className="flex gap-2">
-                        <Input
-                          placeholder="Key"
-                          value={header.key}
-                          onChange={(e) => {
-                            const newHeaders = [...request.headers]
-                            newHeaders[idx].key = e.target.value
-                            setRequest({ ...request, headers: newHeaders })
-                          }}
-                        />
-                        <Input
-                          placeholder="Value"
-                          value={header.value}
-                          onChange={(e) => {
-                            const newHeaders = [...request.headers]
-                            newHeaders[idx].value = e.target.value
-                            setRequest({ ...request, headers: newHeaders })
-                          }}
-                        />
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Header Name"
+                            value={header.key}
+                            list={`header-keys-${idx}`}
+                            onChange={(e) => {
+                              const newHeaders = [...request.headers]
+                              newHeaders[idx].key = e.target.value
+                              setRequest({ ...request, headers: newHeaders })
+                            }}
+                          />
+                          <datalist id={`header-keys-${idx}`}>
+                            {COMMON_HEADERS.map((headerName) => (
+                              <option key={headerName} value={headerName} />
+                            ))}
+                          </datalist>
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Value"
+                            value={header.value}
+                            list={`header-values-${idx}`}
+                            onChange={(e) => {
+                              const newHeaders = [...request.headers]
+                              newHeaders[idx].value = e.target.value
+                              setRequest({ ...request, headers: newHeaders })
+                            }}
+                          />
+                          <datalist id={`header-values-${idx}`}>
+                            {header.key &&
+                              HEADER_SUGGESTIONS[header.key]?.map((value) => (
+                                <option key={value} value={value} />
+                              ))}
+                          </datalist>
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
