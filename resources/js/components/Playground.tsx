@@ -158,13 +158,10 @@ const COMMON_HEADERS = Object.keys(HEADER_SUGGESTIONS)
 
 export default function Playground() {
   const [schema, setSchema] = useState<Schema>({ routes: [] })
-  const [selectedRouteUri, setSelectedRouteUri] = useQueryState("route", {
-    defaultValue: "",
-  })
   const [selectedGroup, setSelectedGroup] = useQueryState("group", {
     defaultValue: "",
   })
-  const [activeTabId, setActiveTabId] = useQueryState("tab", {
+  const [activeTabId, setActiveTabId] = useQueryState("route", {
     defaultValue: "",
   })
   const [searchQuery, setSearchQuery] = useState("")
@@ -227,7 +224,7 @@ export default function Playground() {
   const createTab = (route: Route): RequestTab => {
     const routeParams = extractRouteParams(route.uri)
     return {
-      id: `${route.method}:${route.uri}:${Date.now()}`,
+      id: `${route.method}:${route.uri}`,
       label: route.uri,
       method: route.method,
       uri: route.uri,
@@ -263,13 +260,11 @@ export default function Playground() {
     if (existingTab) {
       // Switch to existing tab
       setActiveTabId(existingTab.id)
-      setSelectedRouteUri(`${route.method}:${route.uri}`)
     } else {
       // Create new tab
       const newTab = createTab(route)
       setTabs([...tabs, newTab])
       setActiveTabId(newTab.id)
-      setSelectedRouteUri(`${route.method}:${route.uri}`)
     }
   }
 
@@ -283,10 +278,8 @@ export default function Playground() {
       const nextTab = newTabs[activeIndex] || newTabs[activeIndex - 1] || null
       if (nextTab) {
         setActiveTabId(nextTab.id)
-        setSelectedRouteUri(`${nextTab.method}:${nextTab.uri}`)
       } else {
         setActiveTabId("")
-        setSelectedRouteUri("")
       }
     }
   }
@@ -350,10 +343,12 @@ export default function Playground() {
     }
   }, [groupNames.length, selectedGroup, setSelectedGroup, groupNames])
 
-  // Get selected route from URL
-  const selectedRoute =
-    schema.routes.find((r) => `${r.method}:${r.uri}` === selectedRouteUri) ||
-    null
+  // Get selected route from active tab
+  const selectedRoute = activeTab
+    ? schema.routes.find(
+        (r) => r.method === activeTab.method && r.uri === activeTab.uri,
+      ) || null
+    : null
 
   const currentGroup = selectedGroup || groupNames[0] || "web"
   const filteredRoutes = (routeGroups[currentGroup] || []).filter(
