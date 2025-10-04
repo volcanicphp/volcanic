@@ -207,11 +207,13 @@ export default function Playground() {
     routeParams: KeyValuePair[],
   ): string => {
     let url = uri
-    routeParams.forEach((param) => {
-      if (param.value) {
-        url = url.replace(`{${param.key}}`, param.value)
-      }
-    })
+    if (routeParams && Array.isArray(routeParams)) {
+      routeParams.forEach((param) => {
+        if (param.value) {
+          url = url.replace(`{${param.key}}`, param.value)
+        }
+      })
+    }
     return url
   }
 
