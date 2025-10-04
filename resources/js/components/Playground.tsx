@@ -693,7 +693,7 @@ export default function Playground() {
                     </Select>
 
                     {request.auth.type === "bearer" && (
-                      <div>
+                      <div className="space-y-2">
                         <Label>Token</Label>
                         <Input
                           placeholder="Enter bearer token..."
@@ -710,7 +710,7 @@ export default function Playground() {
 
                     {request.auth.type === "basic" && (
                       <>
-                        <div>
+                        <div className="space-y-2">
                           <Label>Username</Label>
                           <Input
                             placeholder="Username"
@@ -726,7 +726,7 @@ export default function Playground() {
                             }
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label>Password</Label>
                           <Input
                             type="password"
@@ -767,18 +767,15 @@ export default function Playground() {
                     </Select>
 
                     {request.bodyType === "json" && (
-                      <div>
-                        <Label>JSON Body</Label>
-                        <Textarea
-                          placeholder='{"key": "value"}'
-                          value={request.body}
-                          onChange={(e) =>
-                            setRequest({ ...request, body: e.target.value })
-                          }
-                          rows={10}
-                          className="font-mono text-sm"
-                        />
-                      </div>
+                      <Textarea
+                        placeholder='{"key": "value"}'
+                        value={request.body}
+                        onChange={(e) =>
+                          setRequest({ ...request, body: e.target.value })
+                        }
+                        rows={10}
+                        className="font-mono text-sm"
+                      />
                     )}
 
                     {request.bodyType === "form" && (
