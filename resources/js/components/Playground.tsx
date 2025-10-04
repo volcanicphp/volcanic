@@ -362,7 +362,7 @@ export default function Playground() {
 
     if (response.isJson && typeof response.data === "object") {
       return (
-        <div className="bg-muted p-4 rounded-md overflow-x-auto">
+        <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
           <JsonView data={response.data} />
         </div>
       )
@@ -372,14 +372,14 @@ export default function Playground() {
       try {
         const parsed = JSON.parse(response.data)
         return (
-          <div className="bg-muted p-4 rounded-md overflow-x-auto">
+          <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
             <JsonView data={parsed} />
           </div>
         )
       } catch {
         return (
-          <div className="bg-muted p-4 rounded-md overflow-x-auto">
-            <pre className="text-sm font-mono whitespace-pre-wrap">
+          <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
+            <pre className="text-sm font-mono whitespace-pre-wrap break-words">
               {response.data}
             </pre>
           </div>
@@ -388,8 +388,8 @@ export default function Playground() {
     }
 
     return (
-      <div className="bg-muted p-4 rounded-md overflow-x-auto">
-        <pre className="text-sm font-mono whitespace-pre-wrap">
+      <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
+        <pre className="text-sm font-mono whitespace-pre-wrap break-words">
           {String(response.data)}
         </pre>
       </div>
@@ -793,7 +793,7 @@ export default function Playground() {
 
               {/* Response Panel */}
               {response && (
-                <div className="border rounded-lg">
+                <div className="border rounded-lg overflow-hidden">
                   <div className="bg-muted px-4 py-3 border-b flex items-center justify-between">
                     <h3 className="font-semibold">Response</h3>
                     <div className="flex items-center gap-3">
@@ -807,7 +807,7 @@ export default function Playground() {
                       </span>
                     </div>
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 overflow-x-hidden">
                     <Tabs value={responseTab} onValueChange={setResponseTab}>
                       <TabsList>
                         <TabsTrigger value="body">Body</TabsTrigger>
@@ -836,8 +836,8 @@ export default function Playground() {
                         </div>
                       </TabsContent>
                       <TabsContent value="raw">
-                        <div className="bg-muted p-4 rounded-md overflow-x-auto">
-                          <pre className="text-sm font-mono whitespace-pre-wrap">
+                        <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
+                          <pre className="text-sm font-mono whitespace-pre-wrap break-words">
                             {typeof response.data === "string"
                               ? response.data
                               : JSON.stringify(response.data, null, 2)}
