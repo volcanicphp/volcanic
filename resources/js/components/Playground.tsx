@@ -121,7 +121,7 @@ export default function Playground() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
-    fetch("/volcanic/schema")
+    fetch("/volcanic/playground/schema")
       .then((res) => res.json())
       .then((data) => setSchema(data))
       .catch((err) => console.error("Failed to load schema:", err))

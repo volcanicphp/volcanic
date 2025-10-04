@@ -120,3 +120,101 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add cursor pointer to all interactive shadcn components */
+@layer components {
+  /* Buttons */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Tabs */
+  [role="tab"],
+  [data-radix-collection-item] {
+    cursor: pointer;
+  }
+
+  /* Select items and triggers */
+  [role="option"],
+  [role="combobox"],
+  [data-radix-select-trigger],
+  [data-radix-select-item] {
+    cursor: pointer;
+  }
+
+  /* Menu items */
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"] {
+    cursor: pointer;
+  }
+
+  /* Sidebar menu items */
+  [data-sidebar="menu-button"],
+  [data-sidebar="menu-action"] {
+    cursor: pointer;
+  }
+
+  /* Accordion triggers */
+  [data-radix-accordion-trigger] {
+    cursor: pointer;
+  }
+
+  /* Dialog/Sheet close buttons */
+  [data-radix-dialog-close],
+  [data-radix-sheet-close] {
+    cursor: pointer;
+  }
+
+  /* Collapsible triggers */
+  [data-radix-collapsible-trigger] {
+    cursor: pointer;
+  }
+
+  /* Tooltips triggers */
+  [data-radix-tooltip-trigger] {
+    cursor: pointer;
+  }
+
+  /* Navigation menu items */
+  [data-radix-navigation-menu-trigger],
+  [data-radix-navigation-menu-link] {
+    cursor: pointer;
+  }
+
+  /* Dropdown menu items */
+  [data-radix-dropdown-menu-item] {
+    cursor: pointer;
+  }
+
+  /* Context menu items */
+  [data-radix-context-menu-item] {
+    cursor: pointer;
+  }
+
+  /* Toggle group items */
+  [data-radix-toggle-group-item] {
+    cursor: pointer;
+  }
+
+  /* Radio group items */
+  [data-radix-radio-group-item] {
+    cursor: pointer;
+  }
+
+  /* Checkbox */
+  [role="checkbox"] {
+    cursor: pointer;
+  }
+
+  /* Switch */
+  [role="switch"] {
+    cursor: pointer;
+  }
+
+  /* Any element with onClick that's clickable */
+  [data-clickable="true"] {
+    cursor: pointer;
+  }
+}
