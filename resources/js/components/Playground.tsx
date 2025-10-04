@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -10,8 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
 import { JsonView } from "react-json-view-lite"
 import "react-json-view-lite/dist/index.css"
 import {
@@ -19,16 +32,13 @@ import {
   Send,
   Plus,
   Trash2,
-  Database,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
   Monitor,
   Tablet,
   Smartphone,
   Code,
 } from "lucide-react"
 
+// Types
 interface RouteParam {
   name: string
   type: string
@@ -44,22 +54,8 @@ interface Route {
   prefix?: string
 }
 
-interface ModelField {
-  name: string
-  type: string
-  hidden?: boolean
-}
-
-interface Model {
-  name: string
-  class: string
-  routes: Route[]
-  fields?: ModelField[]
-}
-
 interface Schema {
   routes: Route[]
-  models: Model[]
 }
 
 interface KeyValuePair {
@@ -100,67 +96,53 @@ interface ResponseData {
 type DeviceSize = "mobile" | "tablet" | "desktop"
 
 export default function Playground() {
-  const [schema, setSchema] = useState<Schema>({ routes: [], models: [] })
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([])
+  const [schema, setSchema] = useState<Schema>({ routes: [] })
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null)
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [deviceSize, setDeviceSize] = useState<DeviceSize>("desktop")
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
+  const [searchQuery, setSearchQuery] = useState("")
   const [request, setRequest] = useState<RequestConfig>({
     method: "GET",
     url: "",
     params: [],
-    headers: [
-      { key: "Accept", value: "application/json" },
-      { key: "Content-Type", value: "application/json" },
-    ],
-    auth: { type: "none", token: "", username: "", password: "" },
+    headers: [],
+    auth: {
+      type: "none",
+      token: "",
+      username: "",
+      password: "",
+    },
     bodyType: "json",
     body: "",
     formData: [],
   })
-
   const [response, setResponse] = useState<ResponseData | null>(null)
-  const [activeTab, setActiveTab] = useState("params")
+  const [loading, setLoading] = useState(false)
   const [responseTab, setResponseTab] = useState("body")
+  const [deviceSize, setDeviceSize] = useState<DeviceSize>("desktop")
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
-    loadSchema()
+    fetch("/volcanic/schema")
+      .then((res) => res.json())
+      .then((data) => setSchema(data))
+      .catch((err) => console.error("Failed to load schema:", err))
   }, [])
 
-  useEffect(() => {
-    filterRoutes()
-  }, [searchQuery, schema])
+  const filteredRoutes = schema.routes.filter(
+    (route) =>
+      route.uri.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      route.method.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      route.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
-  const loadSchema = async () => {
-    try {
-      const res = await fetch("/volcanic/playground/schema")
-      const data = await res.json()
-      setSchema(data)
-    } catch (error) {
-      console.error("Failed to load schema:", error)
-    }
-  }
-
-  const filterRoutes = () => {
-    if (!searchQuery) {
-      setFilteredRoutes(schema.routes || [])
-      return
-    }
-
-    const query = searchQuery.toLowerCase()
-    setFilteredRoutes(
-      (schema.routes || []).filter(
-        (route) =>
-          route.uri.toLowerCase().includes(query) ||
-          route.method.toLowerCase().includes(query) ||
-          (route.name && route.name.toLowerCase().includes(query)),
-      ),
-    )
-  }
+  const groupedRoutes = filteredRoutes.reduce(
+    (acc, route) => {
+      const prefix = route.prefix || "web"
+      if (!acc[prefix]) acc[prefix] = []
+      acc[prefix].push(route)
+      return acc
+    },
+    {} as Record<string, Route[]>,
+  )
 
   const selectRoute = (route: Route) => {
     setSelectedRoute(route)
@@ -172,55 +154,63 @@ export default function Playground() {
   }
 
   const sendRequest = async () => {
+    if (!request.url) return
+
     setLoading(true)
-    const startTime = performance.now()
+    const startTime = Date.now()
 
     try {
       let url = request.url
-      const params = request.params.filter((p) => p.key && p.value)
-      if (params.length > 0) {
-        const queryString = params
-          .map(
-            (p) =>
-              `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`,
-          )
-          .join("&")
-        url += (url.includes("?") ? "&" : "?") + queryString
+      if (request.params.length > 0) {
+        const params = new URLSearchParams(
+          request.params
+            .filter((p) => p.key && p.value)
+            .map((p) => [p.key, p.value]),
+        )
+        url += `?${params.toString()}`
       }
 
       const headers: Record<string, string> = {}
-      request.headers.forEach((h) => {
-        if (h.key && h.value) headers[h.key] = h.value
-      })
+      request.headers
+        .filter((h) => h.key && h.value)
+        .forEach((h) => {
+          headers[h.key] = h.value
+        })
 
       if (request.auth.type === "bearer" && request.auth.token) {
         headers["Authorization"] = `Bearer ${request.auth.token}`
-      } else if (request.auth.type === "basic" && request.auth.username) {
-        const credentials = btoa(
+      } else if (
+        request.auth.type === "basic" &&
+        request.auth.username &&
+        request.auth.password
+      ) {
+        const encoded = btoa(
           `${request.auth.username}:${request.auth.password}`,
         )
-        headers["Authorization"] = `Basic ${credentials}`
+        headers["Authorization"] = `Basic ${encoded}`
       }
 
-      let body: string | null = null
+      let body: string | FormData | undefined
       if (["POST", "PUT", "PATCH"].includes(request.method)) {
         if (request.bodyType === "json") {
+          headers["Content-Type"] = "application/json"
           body = request.body
         } else {
-          const formData: Record<string, string> = {}
-          request.formData.forEach((f) => {
-            if (f.key && f.value) formData[f.key] = f.value
-          })
-          body = JSON.stringify(formData)
+          const formData = new FormData()
+          request.formData
+            .filter((f) => f.key && f.value)
+            .forEach((f) => formData.append(f.key, f.value))
+          body = formData
         }
       }
 
-      const fetchOptions: RequestInit = { method: request.method, headers }
-      if (body) fetchOptions.body = body
+      const res = await fetch(url, {
+        method: request.method,
+        headers,
+        body,
+      })
 
-      const res = await fetch(url, fetchOptions)
-      const endTime = performance.now()
-
+      const time = Date.now() - startTime
       const contentType = res.headers.get("content-type") || ""
       const isJson = contentType.includes("application/json")
       const isHtml = contentType.includes("text/html")
@@ -245,28 +235,28 @@ export default function Playground() {
       setResponse({
         status: res.status,
         statusText: res.statusText,
-        time: Math.round(endTime - startTime),
-        data: data,
+        data,
         headers: responseHeaders,
+        time,
         contentType,
         isHtml,
         isJson,
         isText,
       })
-    } catch (error) {
-      const endTime = performance.now()
+      setResponseTab("body")
+    } catch (err) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error"
+        err instanceof Error ? err.message : "An unknown error occurred"
       setResponse({
         status: 0,
         statusText: "Error",
-        time: Math.round(endTime - startTime),
-        data: { error: errorMessage },
+        data: errorMessage,
         headers: {},
-        contentType: "application/json",
+        time: Date.now() - startTime,
+        contentType: "text/plain",
         isHtml: false,
-        isJson: true,
-        isText: false,
+        isJson: false,
+        isText: true,
       })
     } finally {
       setLoading(false)
@@ -275,19 +265,23 @@ export default function Playground() {
 
   const getMethodColor = (method: string) => {
     const colors: Record<string, string> = {
-      GET: "bg-green-100 text-green-700",
-      POST: "bg-blue-100 text-blue-700",
-      PUT: "bg-yellow-100 text-yellow-700",
-      PATCH: "bg-yellow-100 text-yellow-700",
-      DELETE: "bg-red-100 text-red-700",
+      GET: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400",
+      POST: "text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-400",
+      PUT: "text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400",
+      PATCH: "text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400",
+      DELETE: "text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400",
     }
-    return colors[method] || "bg-gray-100 text-gray-700"
+    return colors[method] || "text-muted-foreground bg-muted"
   }
 
   const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return "bg-green-100 text-green-700"
-    if (status >= 300 && status < 400) return "bg-yellow-100 text-yellow-700"
-    return "bg-red-100 text-red-700"
+    if (status >= 200 && status < 300)
+      return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400"
+    if (status >= 300 && status < 400)
+      return "text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-400"
+    if (status >= 400 && status < 500)
+      return "text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-400"
+    return "text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400"
   }
 
   const getDeviceWidth = (size: DeviceSize): string => {
@@ -302,7 +296,6 @@ export default function Playground() {
   const renderResponseBody = () => {
     if (!response) return null
 
-    // HTML Response - Show in iframe with device preview
     if (response.isHtml) {
       return (
         <div className="space-y-4">
@@ -335,7 +328,7 @@ export default function Playground() {
               </Button>
             </div>
           </div>
-          <div className="bg-gray-100 p-4 rounded-md flex justify-center">
+          <div className="bg-muted p-4 rounded-md flex justify-center">
             <div
               style={{
                 width: getDeviceWidth(deviceSize),
@@ -343,15 +336,13 @@ export default function Playground() {
                 transition: "width 0.3s ease",
               }}
             >
-              <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                <div className="bg-gray-800 text-white text-xs px-3 py-1 flex items-center justify-between">
+              <div className="bg-background shadow-lg rounded-lg overflow-hidden border">
+                <div className="bg-muted text-muted-foreground text-xs px-3 py-1 flex items-center justify-between border-b">
                   <span>
                     {deviceSize.charAt(0).toUpperCase() + deviceSize.slice(1)}{" "}
                     View
                   </span>
-                  <span className="text-gray-400">
-                    {getDeviceWidth(deviceSize)}
-                  </span>
+                  <span>{getDeviceWidth(deviceSize)}</span>
                 </div>
                 <iframe
                   ref={iframeRef}
@@ -364,43 +355,38 @@ export default function Playground() {
               </div>
             </div>
           </div>
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setResponseTab("raw")}
-            >
-              <Code className="h-4 w-4 mr-1" />
-              View Raw HTML
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setResponseTab("raw")}
+          >
+            <Code className="h-4 w-4 mr-1" />
+            View Raw HTML
+          </Button>
         </div>
       )
     }
 
-    // JSON Response - Show with syntax highlighting
     if (response.isJson && typeof response.data === "object") {
       return (
-        <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+        <div className="bg-muted p-4 rounded-md overflow-x-auto">
           <JsonView data={response.data} />
         </div>
       )
     }
 
-    // Plain Text Response - Show with syntax highlighting if it looks like JSON
     if (typeof response.data === "string") {
       try {
         const parsed = JSON.parse(response.data)
         return (
-          <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+          <div className="bg-muted p-4 rounded-md overflow-x-auto">
             <JsonView data={parsed} />
           </div>
         )
       } catch {
-        // Not JSON, show as plain text with formatting
         return (
-          <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
-            <pre className="text-sm font-mono whitespace-pre-wrap text-gray-800">
+          <div className="bg-muted p-4 rounded-md overflow-x-auto">
+            <pre className="text-sm font-mono whitespace-pre-wrap">
               {response.data}
             </pre>
           </div>
@@ -408,9 +394,8 @@ export default function Playground() {
       }
     }
 
-    // Fallback
     return (
-      <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+      <div className="bg-muted p-4 rounded-md overflow-x-auto">
         <pre className="text-sm font-mono whitespace-pre-wrap">
           {String(response.data)}
         </pre>
@@ -419,165 +404,83 @@ export default function Playground() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-volcano text-3xl"></i>
-              <div>
-                <h1 className="text-2xl font-bold">Volcanic API Playground</h1>
-                <p className="text-orange-100 text-sm">
-                  Interactive REST API Explorer
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
-                {schema.routes?.length || 0} Routes
-              </span>
-              <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
-                {schema.models?.length || 0} Models
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Sidebar */}
-          <div className="col-span-3 space-y-4">
-            {/* Search */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search routes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Routes List */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gray-100 px-4 py-3 border-b">
-                <h2 className="font-semibold text-gray-700">API Routes</h2>
-              </div>
-              <ScrollArea className="h-96">
-                {filteredRoutes.map((route, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => selectRoute(route)}
-                    className={`px-4 py-3 border-b cursor-pointer transition-colors ${
-                      selectedRoute?.uri === route.uri &&
-                      selectedRoute?.method === route.method
-                        ? "bg-orange-50 border-l-4 border-orange-500"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded ${getMethodColor(
-                            route.method,
-                          )}`}
-                        >
-                          {route.method}
-                        </span>
-                        <span className="text-sm text-gray-700 truncate">
-                          {route.uri}
-                        </span>
-                      </div>
-                      {route.prefix && route.prefix !== "web" && (
-                        <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 font-medium">
-                          {route.prefix}
-                        </span>
-                      )}
-                    </div>
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        {/* Sidebar with routes */}
+        <Sidebar>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>API Routes</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <div className="px-2 pb-2">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search routes..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8"
+                    />
                   </div>
-                ))}
-                {filteredRoutes.length === 0 && (
-                  <div className="px-4 py-8 text-center text-gray-500">
-                    <Search className="mx-auto h-8 w-8 mb-2" />
-                    <p>No routes found</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-
-            {/* Models List */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gray-100 px-4 py-3 border-b">
-                <h2 className="font-semibold text-gray-700">Models</h2>
-              </div>
-              <ScrollArea className="h-64">
-                {schema.models?.map((model, idx) => (
-                  <div key={idx} className="border-b">
-                    <div
-                      onClick={() =>
-                        setSelectedModel(
-                          selectedModel?.class === model.class ? null : model,
-                        )
-                      }
-                      className="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Database className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm font-medium">
-                            {model.name}
+                </div>
+                <SidebarMenu>
+                  {Object.entries(groupedRoutes).map(([prefix, routes]) => (
+                    <div key={prefix}>
+                      {prefix !== "web" && (
+                        <div className="px-2 py-1">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">
+                            {prefix}
                           </span>
                         </div>
-                        {selectedModel?.class === model.class ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                    {selectedModel?.class === model.class && (
-                      <div className="px-4 pb-3 space-y-1">
-                        <div className="text-xs text-gray-500 mb-2">
-                          Fields:
-                        </div>
-                        {model.fields?.map((field, fieldIdx) => (
-                          <div
-                            key={fieldIdx}
-                            className="flex justify-between text-xs py-1 px-2 bg-gray-50 rounded"
+                      )}
+                      {routes.map((route, idx) => (
+                        <SidebarMenuItem
+                          key={`${route.method}-${route.uri}-${idx}`}
+                        >
+                          <SidebarMenuButton
+                            onClick={() => selectRoute(route)}
+                            isActive={
+                              selectedRoute?.uri === route.uri &&
+                              selectedRoute?.method === route.method
+                            }
                           >
-                            <span className="font-mono text-gray-700">
-                              {field.name}
+                            <span
+                              className={`text-xs font-semibold px-2 py-0.5 rounded ${getMethodColor(route.method)}`}
+                            >
+                              {route.method}
                             </span>
-                            <span className="text-gray-500">{field.type}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </ScrollArea>
-            </div>
-          </div>
+                            <span className="truncate text-sm">
+                              {route.uri}
+                            </span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </div>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-          {/* Main Content */}
-          <div className="col-span-9 space-y-4">
-            {/* Request Builder */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Main content */}
+        <SidebarInset>
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
+              <SidebarTrigger />
+              <Separator orientation="vertical" className="h-6" />
+              <h1 className="text-lg font-semibold">API Playground</h1>
+            </header>
+
+            {/* Request Panel */}
+            <div className="flex-1 overflow-auto p-6 space-y-6">
               <div className="space-y-4">
-                {/* URL Bar */}
-                <div className="flex space-x-2">
+                <div className="flex gap-2">
                   <Select
                     value={request.method}
                     onValueChange={(value) =>
-                      setRequest({
-                        ...request,
-                        method: value,
-                      })
+                      setRequest({ ...request, method: value })
                     }
                   >
                     <SelectTrigger className="w-32">
@@ -592,59 +495,37 @@ export default function Playground() {
                     </SelectContent>
                   </Select>
                   <Input
-                    type="text"
-                    placeholder="Enter request URL (e.g., /api/products)"
+                    placeholder="Enter URL..."
                     value={request.url}
                     onChange={(e) =>
-                      setRequest({
-                        ...request,
-                        url: e.target.value,
-                      })
+                      setRequest({ ...request, url: e.target.value })
                     }
                     className="flex-1"
                   />
-                  <Button
-                    onClick={sendRequest}
-                    disabled={loading}
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" /> Send
-                      </>
-                    )}
+                  <Button onClick={sendRequest} disabled={loading}>
+                    <Send className="h-4 w-4 mr-2" />
+                    {loading ? "Sending..." : "Send"}
                   </Button>
                 </div>
 
-                {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <Tabs defaultValue="params">
                   <TabsList>
-                    <TabsTrigger value="params">Query Params</TabsTrigger>
+                    <TabsTrigger value="params">Params</TabsTrigger>
                     <TabsTrigger value="headers">Headers</TabsTrigger>
-                    <TabsTrigger value="auth">Authorization</TabsTrigger>
-                    {["POST", "PUT", "PATCH"].includes(request.method) && (
-                      <TabsTrigger value="body">Body</TabsTrigger>
-                    )}
+                    <TabsTrigger value="auth">Auth</TabsTrigger>
+                    <TabsTrigger value="body">Body</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="params" className="space-y-2">
                     {request.params.map((param, idx) => (
-                      <div key={idx} className="flex space-x-2">
+                      <div key={idx} className="flex gap-2">
                         <Input
                           placeholder="Key"
                           value={param.key}
                           onChange={(e) => {
                             const newParams = [...request.params]
                             newParams[idx].key = e.target.value
-                            setRequest({
-                              ...request,
-                              params: newParams,
-                            })
+                            setRequest({ ...request, params: newParams })
                           }}
                         />
                         <Input
@@ -653,10 +534,7 @@ export default function Playground() {
                           onChange={(e) => {
                             const newParams = [...request.params]
                             newParams[idx].value = e.target.value
-                            setRequest({
-                              ...request,
-                              params: newParams,
-                            })
+                            setRequest({ ...request, params: newParams })
                           }}
                         />
                         <Button
@@ -666,18 +544,15 @@ export default function Playground() {
                             const newParams = request.params.filter(
                               (_, i) => i !== idx,
                             )
-                            setRequest({
-                              ...request,
-                              params: newParams,
-                            })
+                            setRequest({ ...request, params: newParams })
                           }}
                         >
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() =>
                         setRequest({
@@ -685,25 +560,22 @@ export default function Playground() {
                           params: [...request.params, { key: "", value: "" }],
                         })
                       }
-                      className="text-orange-600 hover:text-orange-700"
                     >
-                      <Plus className="h-4 w-4 mr-2" /> Add Parameter
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Param
                     </Button>
                   </TabsContent>
 
                   <TabsContent value="headers" className="space-y-2">
                     {request.headers.map((header, idx) => (
-                      <div key={idx} className="flex space-x-2">
+                      <div key={idx} className="flex gap-2">
                         <Input
                           placeholder="Key"
                           value={header.key}
                           onChange={(e) => {
                             const newHeaders = [...request.headers]
                             newHeaders[idx].key = e.target.value
-                            setRequest({
-                              ...request,
-                              headers: newHeaders,
-                            })
+                            setRequest({ ...request, headers: newHeaders })
                           }}
                         />
                         <Input
@@ -712,10 +584,7 @@ export default function Playground() {
                           onChange={(e) => {
                             const newHeaders = [...request.headers]
                             newHeaders[idx].value = e.target.value
-                            setRequest({
-                              ...request,
-                              headers: newHeaders,
-                            })
+                            setRequest({ ...request, headers: newHeaders })
                           }}
                         />
                         <Button
@@ -725,18 +594,15 @@ export default function Playground() {
                             const newHeaders = request.headers.filter(
                               (_, i) => i !== idx,
                             )
-                            setRequest({
-                              ...request,
-                              headers: newHeaders,
-                            })
+                            setRequest({ ...request, headers: newHeaders })
                           }}
                         >
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() =>
                         setRequest({
@@ -744,9 +610,9 @@ export default function Playground() {
                           headers: [...request.headers, { key: "", value: "" }],
                         })
                       }
-                      className="text-orange-600 hover:text-orange-700"
                     >
-                      <Plus className="h-4 w-4 mr-2" /> Add Header
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Header
                     </Button>
                   </TabsContent>
 
@@ -769,32 +635,31 @@ export default function Playground() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">No Auth</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="bearer">Bearer Token</SelectItem>
                           <SelectItem value="basic">Basic Auth</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+
                     {request.auth.type === "bearer" && (
                       <div>
                         <Label>Token</Label>
                         <Input
-                          placeholder="Enter your bearer token"
+                          placeholder="Enter bearer token..."
                           value={request.auth.token}
                           onChange={(e) =>
                             setRequest({
                               ...request,
-                              auth: {
-                                ...request.auth,
-                                token: e.target.value,
-                              },
+                              auth: { ...request.auth, token: e.target.value },
                             })
                           }
                         />
                       </div>
                     )}
+
                     {request.auth.type === "basic" && (
-                      <div className="space-y-2">
+                      <>
                         <div>
                           <Label>Username</Label>
                           <Input
@@ -828,57 +693,51 @@ export default function Playground() {
                             }
                           />
                         </div>
-                      </div>
+                      </>
                     )}
                   </TabsContent>
 
                   <TabsContent value="body" className="space-y-4">
-                    <div className="flex space-x-4">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          checked={request.bodyType === "json"}
-                          onChange={() =>
-                            setRequest({
-                              ...request,
-                              bodyType: "json",
-                            })
-                          }
-                          className="text-orange-600"
-                        />
-                        <span className="text-sm">JSON</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          checked={request.bodyType === "form"}
-                          onChange={() =>
-                            setRequest({
-                              ...request,
-                              bodyType: "form",
-                            })
-                          }
-                          className="text-orange-600"
-                        />
-                        <span className="text-sm">Form Data</span>
-                      </label>
-                    </div>
-                    {request.bodyType === "json" ? (
-                      <Textarea
-                        placeholder='{\n  "key": "value"\n}'
-                        value={request.body}
-                        onChange={(e) =>
+                    <div>
+                      <Label>Body Type</Label>
+                      <Select
+                        value={request.bodyType}
+                        onValueChange={(value) =>
                           setRequest({
                             ...request,
-                            body: e.target.value,
+                            bodyType: value as "json" | "form",
                           })
                         }
-                        className="h-48 font-mono text-sm"
-                      />
-                    ) : (
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="json">JSON</SelectItem>
+                          <SelectItem value="form">Form Data</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {request.bodyType === "json" && (
+                      <div>
+                        <Label>JSON Body</Label>
+                        <Textarea
+                          placeholder='{"key": "value"}'
+                          value={request.body}
+                          onChange={(e) =>
+                            setRequest({ ...request, body: e.target.value })
+                          }
+                          rows={10}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    )}
+
+                    {request.bodyType === "form" && (
                       <div className="space-y-2">
                         {request.formData.map((field, idx) => (
-                          <div key={idx} className="flex space-x-2">
+                          <div key={idx} className="flex gap-2">
                             <Input
                               placeholder="Key"
                               value={field.key}
@@ -916,99 +775,93 @@ export default function Playground() {
                                 })
                               }}
                             >
-                              <Trash2 className="h-4 w-4 text-red-600" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         ))}
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() =>
                             setRequest({
                               ...request,
                               formData: [
                                 ...request.formData,
-                                {
-                                  key: "",
-                                  value: "",
-                                },
+                                { key: "", value: "" },
                               ],
                             })
                           }
-                          className="text-orange-600 hover:text-orange-700"
                         >
-                          <Plus className="h-4 w-4 mr-2" /> Add Field
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Field
                         </Button>
                       </div>
                     )}
                   </TabsContent>
                 </Tabs>
               </div>
-            </div>
 
-            {/* Response */}
-            {response && (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gray-100 px-6 py-3 border-b flex items-center justify-between">
-                  <h2 className="font-semibold text-gray-700">Response</h2>
-                  <div className="flex items-center space-x-3">
-                    <span
-                      className={`text-sm font-semibold px-3 py-1 rounded ${getStatusColor(
-                        response.status,
-                      )}`}
-                    >
-                      {response.status} {response.statusText}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {response.time}ms
-                    </span>
+              {/* Response Panel */}
+              {response && (
+                <div className="border rounded-lg">
+                  <div className="bg-muted px-4 py-3 border-b flex items-center justify-between">
+                    <h3 className="font-semibold">Response</h3>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-sm font-semibold px-3 py-1 rounded ${getStatusColor(response.status)}`}
+                      >
+                        {response.status} {response.statusText}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {response.time}ms
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <Tabs value={responseTab} onValueChange={setResponseTab}>
+                      <TabsList>
+                        <TabsTrigger value="body">Body</TabsTrigger>
+                        <TabsTrigger value="headers">Headers</TabsTrigger>
+                        {response.isHtml && (
+                          <TabsTrigger value="raw">Raw HTML</TabsTrigger>
+                        )}
+                      </TabsList>
+                      <TabsContent value="body">
+                        {renderResponseBody()}
+                      </TabsContent>
+                      <TabsContent value="headers">
+                        <div className="space-y-2">
+                          {Object.entries(response.headers).map(
+                            ([key, value]) => (
+                              <div key={key} className="flex gap-2 text-sm">
+                                <span className="font-semibold min-w-[200px]">
+                                  {key}:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {value}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="raw">
+                        <div className="bg-muted p-4 rounded-md overflow-x-auto">
+                          <pre className="text-sm font-mono whitespace-pre-wrap">
+                            {typeof response.data === "string"
+                              ? response.data
+                              : JSON.stringify(response.data, null, 2)}
+                          </pre>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </div>
-                <div className="p-6">
-                  <Tabs value={responseTab} onValueChange={setResponseTab}>
-                    <TabsList>
-                      <TabsTrigger value="body">Body</TabsTrigger>
-                      <TabsTrigger value="headers">Headers</TabsTrigger>
-                      {response.isHtml && (
-                        <TabsTrigger value="raw">Raw HTML</TabsTrigger>
-                      )}
-                    </TabsList>
-                    <TabsContent value="body">
-                      {renderResponseBody()}
-                    </TabsContent>
-                    <TabsContent value="headers">
-                      <div className="space-y-2">
-                        {Object.entries(response.headers).map(
-                          ([key, value]) => (
-                            <div
-                              key={key}
-                              className="flex items-start space-x-2 text-sm"
-                            >
-                              <span className="font-semibold text-gray-700 min-w-[200px]">
-                                {key}:
-                              </span>
-                              <span className="text-gray-600">{value}</span>
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="raw">
-                      <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
-                        <pre className="text-sm font-mono whitespace-pre-wrap text-gray-800">
-                          {typeof response.data === "string"
-                            ? response.data
-                            : JSON.stringify(response.data, null, 2)}
-                        </pre>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }
