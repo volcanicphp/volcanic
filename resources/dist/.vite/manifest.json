@@ -10,7 +10,6 @@
     "src": "resources/js/playground.tsx",
     "isEntry": true,
     "css": [
-      "playground.css",
       "playgroundStyles.css"
     ]
   }

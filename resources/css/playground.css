@@ -218,51 +218,18 @@
     cursor: pointer;
   }
 
-  /* JSON View styling for light and dark modes */
-  .json-view {
-    font-family:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* Ensure syntax highlighter respects container width */
+  pre[class*="language-"] {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
   }
 
-  /* Light mode JSON colors */
-  :root .json-view .json-key {
-    color: oklch(0.488 0.243 264.376); /* Purple-ish blue */
-  }
-
-  :root .json-view .json-string {
-    color: oklch(0.6 0.118 184.704); /* Teal */
-  }
-
-  :root .json-view .json-number {
-    color: oklch(0.577 0.245 27.325); /* Orange-red */
-  }
-
-  :root .json-view .json-boolean {
-    color: oklch(0.646 0.222 41.116); /* Orange */
-  }
-
-  :root .json-view .json-null {
-    color: oklch(0.556 0 0); /* Gray */
-  }
-
-  /* Dark mode JSON colors */
-  .dark .json-view .json-key {
-    color: oklch(0.696 0.17 162.48); /* Bright teal */
-  }
-
-  .dark .json-view .json-string {
-    color: oklch(0.769 0.188 70.08); /* Yellow-green */
-  }
-
-  .dark .json-view .json-number {
-    color: oklch(0.704 0.191 22.216); /* Bright orange-red */
-  }
-
-  .dark .json-view .json-boolean {
-    color: oklch(0.828 0.189 84.429); /* Bright yellow */
-  }
-
-  .dark .json-view .json-null {
-    color: oklch(0.708 0 0); /* Light gray */
+  pre[class*="language-"] code {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
   }
 }

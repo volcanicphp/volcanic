@@ -26,14 +26,10 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { JsonView } from "react-json-view-lite"
-import "react-json-view-lite/dist/index.css"
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
-import {
-  oneDark,
-  oneLight,
-} from "react-syntax-highlighter/dist/esm/styles/prism"
+import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism"
 import html from "react-syntax-highlighter/dist/esm/languages/prism/markup"
+import json from "react-syntax-highlighter/dist/esm/languages/prism/json"
 import {
   Search,
   Send,
@@ -42,11 +38,11 @@ import {
   Monitor,
   Tablet,
   Smartphone,
-  Code,
 } from "lucide-react"
 
-// Register only HTML language for syntax highlighting
+// Register languages for syntax highlighting
 SyntaxHighlighter.registerLanguage("html", html)
+SyntaxHighlighter.registerLanguage("json", json)
 
 // Types
 interface RouteParam {
@@ -389,13 +385,25 @@ export default function Playground() {
 
     if (response.isJson && typeof response.data === "object") {
       return (
-        <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
-          <div className="json-view">
-            <JsonView
-              data={response.data}
-              shouldExpandNode={(level) => level < 2}
-            />
-          </div>
+        <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+          <SyntaxHighlighter
+            language="json"
+            style={isDarkMode ? vscDarkPlus : vs}
+            customStyle={{
+              margin: 0,
+              borderRadius: "0.375rem",
+              fontSize: "0.875rem",
+              maxWidth: "100%",
+              overflowX: "hidden",
+              wordBreak: "break-word",
+              whiteSpace: "pre-wrap",
+            }}
+            wrapLines={true}
+            wrapLongLines={true}
+            PreTag="div"
+          >
+            {JSON.stringify(response.data, null, 2)}
+          </SyntaxHighlighter>
         </div>
       )
     }
@@ -404,10 +412,25 @@ export default function Playground() {
       try {
         const parsed = JSON.parse(response.data)
         return (
-          <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
-            <div className="json-view">
-              <JsonView data={parsed} shouldExpandNode={(level) => level < 2} />
-            </div>
+          <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+            <SyntaxHighlighter
+              language="json"
+              style={isDarkMode ? vscDarkPlus : vs}
+              customStyle={{
+                margin: 0,
+                borderRadius: "0.375rem",
+                fontSize: "0.875rem",
+                maxWidth: "100%",
+                overflowX: "hidden",
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
+              }}
+              wrapLines={true}
+              wrapLongLines={true}
+              PreTag="div"
+            >
+              {JSON.stringify(parsed, null, 2)}
+            </SyntaxHighlighter>
           </div>
         )
       } catch {
@@ -873,15 +896,19 @@ export default function Playground() {
                         <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
                           <SyntaxHighlighter
                             language="html"
-                            style={isDarkMode ? oneDark : oneLight}
+                            style={isDarkMode ? vscDarkPlus : vs}
                             customStyle={{
                               margin: 0,
                               borderRadius: "0.375rem",
                               fontSize: "0.875rem",
                               maxWidth: "100%",
+                              overflowX: "hidden",
+                              wordBreak: "break-word",
+                              whiteSpace: "pre-wrap",
                             }}
                             wrapLines={true}
                             wrapLongLines={true}
+                            PreTag="div"
                           >
                             {typeof response.data === "string"
                               ? response.data
