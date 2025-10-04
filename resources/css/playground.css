@@ -232,4 +232,36 @@
     word-break: break-word !important;
     white-space: pre-wrap !important;
   }
+
+  /* Hide horizontal scrollbars globally */
+  ::-webkit-scrollbar:horizontal {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  *::-webkit-scrollbar:horizontal {
+    display: none;
+  }
+
+  /* Keep vertical scrollbars visible */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
 }

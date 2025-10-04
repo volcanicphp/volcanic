@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use ReflectionClass;
 use Volcanic\Attributes\ApiResource;
 
@@ -74,20 +75,22 @@ class SchemaService
         $playgroundRoute = config('volcanic.playground.uri', 'volcanic/playground');
 
         $skipPatterns = [
-            '/__schema__',
-            '/_ignition',
-            '/sanctum',
-            '/_debugbar',
-            '/telescope',
-            '/horizon',
-            '/nova',
-            '/vendor',
-            '/_boost',
-            '/livewire',
-            $playgroundRoute === '/' ? '/' : '/'.$playgroundRoute,
+            '__schema__',
+            '_ignition',
+            '_debugbar',
+            '_boost/*',
+            'sanctum/*',
+            'telescope/*',
+            'horizon/*',
+            'nova/*',
+            'vendor/*',
+            'livewire/*',
+            'filament/*',
+            'storage/{path}',
+            $playgroundRoute === '/' ? '/' : $playgroundRoute,
         ];
 
-        return array_any($skipPatterns, fn ($pattern): bool => str_contains($uri, (string) $pattern));
+        return array_any($skipPatterns, fn (string $pattern): bool => Str::is($pattern, $uri));
     }
 
     /**

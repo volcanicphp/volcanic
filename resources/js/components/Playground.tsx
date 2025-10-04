@@ -81,6 +81,7 @@ interface AuthConfig {
 interface RequestConfig {
   method: string
   url: string
+  routeParams: KeyValuePair[]
   params: KeyValuePair[]
   headers: KeyValuePair[]
   auth: AuthConfig
@@ -196,8 +197,33 @@ export default function Playground() {
   // Get active tab
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0] || null
 
+  // Extract route parameters from URI (e.g., {id}, {slug})
+  const extractRouteParams = (uri: string): KeyValuePair[] => {
+    const matches = uri.match(/\{([^}]+)\}/g)
+    if (!matches) return []
+    return matches.map((match) => ({
+      key: match.slice(1, -1), // Remove { and }
+      value: "",
+    }))
+  }
+
+  // Replace route params in URL with actual values
+  const buildUrlWithRouteParams = (
+    uri: string,
+    routeParams: KeyValuePair[],
+  ): string => {
+    let url = uri
+    routeParams.forEach((param) => {
+      if (param.value) {
+        url = url.replace(`{${param.key}}`, param.value)
+      }
+    })
+    return url
+  }
+
   // Helper functions for tab management
   const createTab = (route: Route): RequestTab => {
+    const routeParams = extractRouteParams(route.uri)
     return {
       id: `${route.method}:${route.uri}:${Date.now()}`,
       label: route.uri,
@@ -206,6 +232,7 @@ export default function Playground() {
       request: {
         method: route.method,
         url: route.uri,
+        routeParams,
         params: [],
         headers: [],
         auth: {
@@ -348,7 +375,10 @@ export default function Playground() {
     updateActiveTab({ loading: true, response: null })
 
     try {
-      let url = request.url
+      // Replace route params in URL first
+      let url = buildUrlWithRouteParams(request.url, request.routeParams)
+
+      // Then add query params
       if (request.params.length > 0) {
         const params = new URLSearchParams(
           request.params
@@ -556,7 +586,7 @@ export default function Playground() {
 
     if (response.isJson && typeof response.data === "object") {
       return (
-        <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+        <div className="overflow-y-auto overflow-x-hidden min-h-[400px] max-h-[calc(100vh-400px)] rounded-md">
           <SyntaxHighlighter
             language="json"
             style={isDarkMode ? vscDarkPlus : vs}
@@ -583,7 +613,7 @@ export default function Playground() {
       try {
         const parsed = JSON.parse(response.data)
         return (
-          <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+          <div className="overflow-y-auto overflow-x-hidden min-h-[400px] max-h-[calc(100vh-400px)] rounded-md">
             <SyntaxHighlighter
               language="json"
               style={isDarkMode ? vscDarkPlus : vs}
@@ -606,7 +636,7 @@ export default function Playground() {
         )
       } catch {
         return (
-          <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
+          <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden min-h-[400px] max-h-[calc(100vh-400px)]">
             <pre className="text-sm font-mono whitespace-pre-wrap break-words">
               {response.data}
             </pre>
@@ -616,7 +646,7 @@ export default function Playground() {
     }
 
     return (
-      <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden max-h-96">
+      <div className="bg-muted p-4 rounded-md overflow-y-auto overflow-x-hidden min-h-[400px] max-h-[calc(100vh-400px)]">
         <pre className="text-sm font-mono whitespace-pre-wrap break-words">
           {String(response.data)}
         </pre>
@@ -625,10 +655,17 @@ export default function Playground() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <div className="flex h-screen w-full">
         {/* Sidebar with routes */}
-        <Sidebar>
+        <Sidebar variant="inset">
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel>
@@ -642,12 +679,12 @@ export default function Playground() {
                     onValueChange={setSelectedGroup}
                     className="w-full"
                   >
-                    <TabsList className="w-full grid grid-cols-auto gap-1 h-auto p-1">
+                    <TabsList className="w-full inline-flex h-auto p-1 overflow-x-auto">
                       {groupNames.map((group) => (
                         <TabsTrigger
                           key={group}
                           value={group}
-                          className="capitalize text-xs"
+                          className="capitalize text-xs whitespace-nowrap"
                         >
                           {group}
                           <span className="ml-1 text-muted-foreground">
@@ -759,32 +796,18 @@ export default function Playground() {
               ) : (
                 <>
                   <div className="space-y-4">
-                    <div className="flex gap-2">
-                      <Select
-                        value={activeTab.request.method}
-                        onValueChange={(value) =>
-                          updateActiveTabRequest({ method: value })
-                        }
+                    <div className="flex gap-2 items-center">
+                      <span
+                        className={`text-sm font-semibold px-4 py-2 rounded-md ${getMethodColor(activeTab.request.method)}`}
                       >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="GET">GET</SelectItem>
-                          <SelectItem value="POST">POST</SelectItem>
-                          <SelectItem value="PUT">PUT</SelectItem>
-                          <SelectItem value="PATCH">PATCH</SelectItem>
-                          <SelectItem value="DELETE">DELETE</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        placeholder="Enter URL..."
-                        value={activeTab.request.url}
-                        onChange={(e) =>
-                          updateActiveTabRequest({ url: e.target.value })
-                        }
-                        className="flex-1"
-                      />
+                        {activeTab.request.method}
+                      </span>
+                      <div className="flex-1 px-3 py-2 text-sm font-mono bg-muted rounded-md border border-input">
+                        {buildUrlWithRouteParams(
+                          activeTab.request.url,
+                          activeTab.request.routeParams,
+                        )}
+                      </div>
                       <Button
                         onClick={sendRequest}
                         disabled={activeTab.loading}
@@ -794,13 +817,55 @@ export default function Playground() {
                       </Button>
                     </div>
 
-                    <Tabs defaultValue="params">
+                    <Tabs
+                      defaultValue={
+                        activeTab.request.routeParams.length > 0
+                          ? "routeParams"
+                          : "params"
+                      }
+                    >
                       <TabsList>
+                        {activeTab.request.routeParams.length > 0 && (
+                          <TabsTrigger value="routeParams">
+                            Route Params
+                          </TabsTrigger>
+                        )}
                         <TabsTrigger value="params">Params</TabsTrigger>
                         <TabsTrigger value="headers">Headers</TabsTrigger>
                         <TabsTrigger value="auth">Authorization</TabsTrigger>
                         <TabsTrigger value="body">Body</TabsTrigger>
                       </TabsList>
+
+                      {activeTab.request.routeParams.length > 0 && (
+                        <TabsContent value="routeParams" className="space-y-2">
+                          {activeTab.request.routeParams.map((param, idx) => (
+                            <div key={idx} className="flex gap-2">
+                              <Input
+                                placeholder="Key"
+                                value={param.key}
+                                readOnly
+                                className="cursor-default bg-muted"
+                              />
+                              <Input
+                                placeholder="Value"
+                                value={param.value}
+                                onChange={(e) => {
+                                  const newRouteParams = [
+                                    ...activeTab.request.routeParams,
+                                  ]
+                                  newRouteParams[idx].value = e.target.value
+                                  updateActiveTabRequest({
+                                    routeParams: newRouteParams,
+                                  })
+                                }}
+                              />
+                            </div>
+                          ))}
+                          <p className="text-sm text-muted-foreground">
+                            Route parameters are extracted from the URL path
+                          </p>
+                        </TabsContent>
+                      )}
 
                       <TabsContent value="params" className="space-y-2">
                         {activeTab.request.params.map((param, idx) => (
@@ -1161,7 +1226,7 @@ export default function Playground() {
                             </div>
                           </TabsContent>
                           <TabsContent value="raw">
-                            <div className="overflow-y-auto overflow-x-hidden max-h-96 rounded-md">
+                            <div className="overflow-y-auto overflow-x-hidden min-h-[400px] max-h-[calc(100vh-400px)] rounded-md">
                               <SyntaxHighlighter
                                 language="html"
                                 style={isDarkMode ? vscDarkPlus : vs}
