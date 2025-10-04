@@ -741,9 +741,9 @@ export default function Playground() {
 
         {/* Main content */}
         <SidebarInset>
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full w-full overflow-x-hidden">
             {/* Header */}
-            <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
+            <header className="flex h-14 items-center gap-4 border-b bg-background px-6 overflow-x-hidden">
               <SidebarTrigger className="md:hidden" />
               <Separator orientation="vertical" className="h-6 md:hidden" />
 
@@ -798,13 +798,13 @@ export default function Playground() {
               ) : (
                 <>
                   <div className="space-y-4">
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center overflow-x-hidden">
                       <span
-                        className={`text-sm font-semibold px-4 py-2 rounded-md ${getMethodColor(activeTab.request.method)}`}
+                        className={`text-sm font-semibold px-4 py-2 rounded-md whitespace-nowrap ${getMethodColor(activeTab.request.method)}`}
                       >
                         {activeTab.request.method}
                       </span>
-                      <div className="flex-1 px-3 py-2 text-sm font-mono bg-muted rounded-md border border-input">
+                      <div className="flex-1 min-w-0 px-3 py-2 text-sm font-mono bg-muted rounded-md border border-input overflow-x-auto">
                         {buildUrlWithRouteParams(
                           activeTab.request.url,
                           activeTab.request.routeParams,
@@ -813,6 +813,7 @@ export default function Playground() {
                       <Button
                         onClick={sendRequest}
                         disabled={activeTab.loading}
+                        className="whitespace-nowrap"
                       >
                         <Send className="h-4 w-4 mr-2" />
                         {activeTab.loading ? "Sending..." : "Send"}
