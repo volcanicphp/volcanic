@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { JsonView } from "react-json-view-lite"
 import "react-json-view-lite/dist/index.css"
 import {
@@ -24,6 +23,10 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Code,
 } from "lucide-react"
 
 interface RouteParam {
@@ -38,6 +41,7 @@ interface Route {
   name: string
   model?: string
   params?: RouteParam[]
+  prefix?: string
 }
 
 interface ModelField {
@@ -87,7 +91,13 @@ interface ResponseData {
   data: any
   headers: Record<string, string>
   time: number
+  contentType: string
+  isHtml: boolean
+  isJson: boolean
+  isText: boolean
 }
+
+type DeviceSize = "mobile" | "tablet" | "desktop"
 
 export default function Playground() {
   const [schema, setSchema] = useState<Schema>({ routes: [], models: [] })
@@ -96,6 +106,8 @@ export default function Playground() {
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null)
   const [selectedModel, setSelectedModel] = useState<Model | null>(null)
   const [loading, setLoading] = useState(false)
+  const [deviceSize, setDeviceSize] = useState<DeviceSize>("desktop")
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const [request, setRequest] = useState<RequestConfig>({
     method: "GET",
@@ -150,7 +162,7 @@ export default function Playground() {
     )
   }
 
-  const selectRoute = (route) => {
+  const selectRoute = (route: Route) => {
     setSelectedRoute(route)
     setRequest((prev) => ({
       ...prev,
@@ -176,7 +188,7 @@ export default function Playground() {
         url += (url.includes("?") ? "&" : "?") + queryString
       }
 
-      const headers = {}
+      const headers: Record<string, string> = {}
       request.headers.forEach((h) => {
         if (h.key && h.value) headers[h.key] = h.value
       })
@@ -190,12 +202,12 @@ export default function Playground() {
         headers["Authorization"] = `Basic ${credentials}`
       }
 
-      let body = null
+      let body: string | null = null
       if (["POST", "PUT", "PATCH"].includes(request.method)) {
         if (request.bodyType === "json") {
           body = request.body
         } else {
-          const formData = {}
+          const formData: Record<string, string> = {}
           request.formData.forEach((f) => {
             if (f.key && f.value) formData[f.key] = f.value
           })
@@ -203,21 +215,29 @@ export default function Playground() {
         }
       }
 
-      const fetchOptions = { method: request.method, headers }
+      const fetchOptions: RequestInit = { method: request.method, headers }
       if (body) fetchOptions.body = body
 
       const res = await fetch(url, fetchOptions)
       const endTime = performance.now()
 
-      let data
-      const contentType = res.headers.get("content-type")
-      if (contentType && contentType.includes("application/json")) {
-        data = await res.json()
+      const contentType = res.headers.get("content-type") || ""
+      const isJson = contentType.includes("application/json")
+      const isHtml = contentType.includes("text/html")
+      const isText = contentType.includes("text/") && !isHtml
+
+      let data: any
+      if (isJson) {
+        try {
+          data = await res.json()
+        } catch {
+          data = await res.text()
+        }
       } else {
         data = await res.text()
       }
 
-      const responseHeaders = {}
+      const responseHeaders: Record<string, string> = {}
       res.headers.forEach((value, key) => {
         responseHeaders[key] = value
       })
@@ -228,23 +248,33 @@ export default function Playground() {
         time: Math.round(endTime - startTime),
         data: data,
         headers: responseHeaders,
+        contentType,
+        isHtml,
+        isJson,
+        isText,
       })
     } catch (error) {
       const endTime = performance.now()
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error"
       setResponse({
         status: 0,
         statusText: "Error",
         time: Math.round(endTime - startTime),
-        data: { error: error.message },
+        data: { error: errorMessage },
         headers: {},
+        contentType: "application/json",
+        isHtml: false,
+        isJson: true,
+        isText: false,
       })
     } finally {
       setLoading(false)
     }
   }
 
-  const getMethodColor = (method) => {
-    const colors = {
+  const getMethodColor = (method: string) => {
+    const colors: Record<string, string> = {
       GET: "bg-green-100 text-green-700",
       POST: "bg-blue-100 text-blue-700",
       PUT: "bg-yellow-100 text-yellow-700",
@@ -254,10 +284,138 @@ export default function Playground() {
     return colors[method] || "bg-gray-100 text-gray-700"
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: number) => {
     if (status >= 200 && status < 300) return "bg-green-100 text-green-700"
     if (status >= 300 && status < 400) return "bg-yellow-100 text-yellow-700"
     return "bg-red-100 text-red-700"
+  }
+
+  const getDeviceWidth = (size: DeviceSize): string => {
+    const widths = {
+      mobile: "375px",
+      tablet: "768px",
+      desktop: "100%",
+    }
+    return widths[size]
+  }
+
+  const renderResponseBody = () => {
+    if (!response) return null
+
+    // HTML Response - Show in iframe with device preview
+    if (response.isHtml) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Device Preview</Label>
+            <div className="flex gap-2">
+              <Button
+                variant={deviceSize === "mobile" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setDeviceSize("mobile")}
+              >
+                <Smartphone className="h-4 w-4 mr-1" />
+                Mobile
+              </Button>
+              <Button
+                variant={deviceSize === "tablet" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setDeviceSize("tablet")}
+              >
+                <Tablet className="h-4 w-4 mr-1" />
+                Tablet
+              </Button>
+              <Button
+                variant={deviceSize === "desktop" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setDeviceSize("desktop")}
+              >
+                <Monitor className="h-4 w-4 mr-1" />
+                Desktop
+              </Button>
+            </div>
+          </div>
+          <div className="bg-gray-100 p-4 rounded-md flex justify-center">
+            <div
+              style={{
+                width: getDeviceWidth(deviceSize),
+                maxWidth: "100%",
+                transition: "width 0.3s ease",
+              }}
+            >
+              <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div className="bg-gray-800 text-white text-xs px-3 py-1 flex items-center justify-between">
+                  <span>
+                    {deviceSize.charAt(0).toUpperCase() + deviceSize.slice(1)}{" "}
+                    View
+                  </span>
+                  <span className="text-gray-400">
+                    {getDeviceWidth(deviceSize)}
+                  </span>
+                </div>
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={response.data}
+                  className="w-full border-0"
+                  style={{ height: "600px" }}
+                  sandbox="allow-same-origin allow-scripts"
+                  title="Response Preview"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setResponseTab("raw")}
+            >
+              <Code className="h-4 w-4 mr-1" />
+              View Raw HTML
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    // JSON Response - Show with syntax highlighting
+    if (response.isJson && typeof response.data === "object") {
+      return (
+        <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+          <JsonView data={response.data} />
+        </div>
+      )
+    }
+
+    // Plain Text Response - Show with syntax highlighting if it looks like JSON
+    if (typeof response.data === "string") {
+      try {
+        const parsed = JSON.parse(response.data)
+        return (
+          <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+            <JsonView data={parsed} />
+          </div>
+        )
+      } catch {
+        // Not JSON, show as plain text with formatting
+        return (
+          <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+            <pre className="text-sm font-mono whitespace-pre-wrap text-gray-800">
+              {response.data}
+            </pre>
+          </div>
+        )
+      }
+    }
+
+    // Fallback
+    return (
+      <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+        <pre className="text-sm font-mono whitespace-pre-wrap">
+          {String(response.data)}
+        </pre>
+      </div>
+    )
   }
 
   return (
@@ -322,17 +480,24 @@ export default function Playground() {
                         : "hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`text-xs font-semibold px-2 py-1 rounded ${getMethodColor(
-                          route.method,
-                        )}`}
-                      >
-                        {route.method}
-                      </span>
-                      <span className="text-sm text-gray-700 truncate">
-                        {route.uri}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded ${getMethodColor(
+                            route.method,
+                          )}`}
+                        >
+                          {route.method}
+                        </span>
+                        <span className="text-sm text-gray-700 truncate">
+                          {route.uri}
+                        </span>
+                      </div>
+                      {route.prefix && route.prefix !== "web" && (
+                        <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 font-medium">
+                          {route.prefix}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -595,7 +760,7 @@ export default function Playground() {
                             ...request,
                             auth: {
                               ...request.auth,
-                              type: value,
+                              type: value as "none" | "bearer" | "basic",
                             },
                           })
                         }
@@ -804,20 +969,12 @@ export default function Playground() {
                     <TabsList>
                       <TabsTrigger value="body">Body</TabsTrigger>
                       <TabsTrigger value="headers">Headers</TabsTrigger>
+                      {response.isHtml && (
+                        <TabsTrigger value="raw">Raw HTML</TabsTrigger>
+                      )}
                     </TabsList>
                     <TabsContent value="body">
-                      <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
-                        {typeof response.data === "object" ? (
-                          <JsonView
-                            data={response.data}
-                            shouldInitiallyExpand={(level) => level < 2}
-                          />
-                        ) : (
-                          <pre className="text-sm font-mono">
-                            {String(response.data)}
-                          </pre>
-                        )}
-                      </div>
+                      {renderResponseBody()}
                     </TabsContent>
                     <TabsContent value="headers">
                       <div className="space-y-2">
@@ -834,6 +991,15 @@ export default function Playground() {
                             </div>
                           ),
                         )}
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="raw">
+                      <div className="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                        <pre className="text-sm font-mono whitespace-pre-wrap text-gray-800">
+                          {typeof response.data === "string"
+                            ? response.data
+                            : JSON.stringify(response.data, null, 2)}
+                        </pre>
                       </div>
                     </TabsContent>
                   </Tabs>

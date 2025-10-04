@@ -30,7 +30,7 @@ class SchemaService
     }
 
     /**
-     * Get all registered API routes.
+     * Get all registered routes (API and web routes).
      */
     protected function getRoutes(): array
     {
@@ -41,9 +41,8 @@ class SchemaService
         foreach ($routeCollection->getRoutes() as $route) {
             $uri = $route->uri();
 
-            // Only include routes that match the API prefix
-            $prefix = config('volcanic.default_api_prefix', 'api');
-            if (! str_starts_with((string) $uri, (string) $prefix)) {
+            // Skip internal Laravel/framework routes
+            if ($this->shouldSkipRoute($uri)) {
                 continue;
             }
 
@@ -59,11 +58,58 @@ class SchemaService
                     'action' => $route->getActionName(),
                     'middleware' => $route->gatherMiddleware(),
                     'parameters' => $this->extractParameters($uri),
+                    'prefix' => $this->getRoutePrefix($uri),
                 ];
             }
         }
 
         return $routes;
+    }
+
+    /**
+     * Determine if a route should be skipped from the schema.
+     */
+    protected function shouldSkipRoute(string $uri): bool
+    {
+        $skipPatterns = [
+            '_ignition',
+            'sanctum',
+            '_debugbar',
+            'telescope',
+            'horizon',
+            'nova',
+            'vendor',
+        ];
+
+        foreach ($skipPatterns as $pattern) {
+            if (str_contains($uri, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the route prefix (api, web, etc.).
+     */
+    protected function getRoutePrefix(string $uri): string
+    {
+        $parts = explode('/', trim($uri, '/'));
+        $firstSegment = $parts[0] ?? '';
+
+        // Common prefixes
+        if (in_array($firstSegment, ['api', 'admin', 'dashboard', 'web'], true)) {
+            return $firstSegment;
+        }
+
+        // Check if it's an API route
+        $apiPrefix = config('volcanic.default_api_prefix', 'api');
+        if (str_starts_with($uri, $apiPrefix)) {
+            return 'api';
+        }
+
+        return 'web';
     }
 
     /**

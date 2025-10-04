@@ -122,19 +122,29 @@ test('schema service extracts route parameters correctly', function (): void {
     }
 });
 
-test('schema service filters routes by api prefix', function (): void {
+test('schema service includes all application routes', function (): void {
     // Register some non-API routes
     Route::get('/web/page', fn (): string => 'test')->name('web.page');
+    Route::get('/admin/dashboard', fn (): string => 'test')->name('admin.dashboard');
 
     $schemaService = app(SchemaService::class);
     $schema = $schemaService->getSchema();
 
-    // All routes in schema should start with the API prefix or be playground routes
     expect($schema['routes'])->toBeArray();
 
     $routes = collect($schema['routes']);
 
-    // Check that web routes are NOT included
+    // Check that web routes ARE included
     $webRoute = $routes->firstWhere('name', 'web.page');
-    expect($webRoute)->toBeNull();
+    expect($webRoute)->not->toBeNull();
+    expect($webRoute['prefix'])->toBe('web');
+
+    // Check that admin routes are included
+    $adminRoute = $routes->firstWhere('name', 'admin.dashboard');
+    expect($adminRoute)->not->toBeNull();
+    expect($adminRoute['prefix'])->toBe('admin');
+
+    // Verify internal routes are excluded
+    $internalRoutes = $routes->filter(fn ($route) => str_starts_with($route['uri'], '_ignition') || str_starts_with($route['uri'], 'sanctum'));
+    expect($internalRoutes)->toBeEmpty();
 });
