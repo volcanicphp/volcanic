@@ -74,6 +74,10 @@ class SchemaService
     {
         $playgroundRoute = config('volcanic.playground.uri', 'volcanic/playground');
 
+        if (Str::startsWith($playgroundRoute, '/')) {
+            $playgroundRoute = ltrim($playgroundRoute, '/');
+        }
+
         $skipPatterns = [
             '__schema__',
             '_ignition',
